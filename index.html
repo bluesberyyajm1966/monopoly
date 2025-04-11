@@ -24,10 +24,9 @@
     }
     main {
       display: flex;
-      flex-wrap: wrap;
       justify-content: center;
-      padding: 20px;
       gap: 20px;
+      padding: 20px;
       animation: fadeIn 1s ease-in;
     }
     canvas {
@@ -46,7 +45,6 @@
       border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
       max-width: 400px;
-      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 15px;
@@ -61,10 +59,6 @@
     .form-row {
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s;
-    }
-    .form-row:hover {
-      transform: scale(1.02);
     }
     .form-row label {
       font-weight: 600;
@@ -76,12 +70,6 @@
       font-size: 14px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      transition: border-color 0.2s, box-shadow 0.3s;
-    }
-    .form-row input:focus {
-      border-color: #007acc;
-      outline: none;
-      box-shadow: 0 0 8px rgba(0, 122, 204, 0.3);
     }
     .form-row button {
       padding: 12px;
@@ -91,22 +79,9 @@
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.2s, transform 0.2s;
     }
     .form-row button:hover {
       background-color: #003366;
-      transform: translateY(-2px);
-    }
-    .form-row button.save {
-      background-color: #007acc;
-    }
-    .form-row button.save:hover {
-      background-color: #005b99;
-    }
-    .error {
-      color: red;
-      font-size: 14px;
-      text-align: center;
     }
 
     @keyframes slideDown {
@@ -150,135 +125,39 @@
       </div>
       <div class="form-row">
         <button onclick="updateProperty()">Update</button>
-        <button class="save" onclick="downloadBoardImage()">Download Board Image</button>
+        <button onclick="downloadBoardImage()">Download Board Image</button>
       </div>
     </div>
   </main>
 
   <script>
     const properties = [
-      { name: "GO", color: "#ffebcd", price: 200 },
-      { name: "Mediterranean Avenue", color: "#e2a3c1", price: 60 },
+      { name: "Mediterranean Avenue", color: "#ffebcd", price: 60 },
       { name: "Community Chest", color: "#f5e1b0", price: 0 },
-      { name: "Baltic Avenue", color: "#e2a3c1", price: 60 },
-      { name: "Income Tax", color: "#c6c6c6", price: 0 },
+      { name: "Baltic Avenue", color: "#ffebcd", price: 60 },
+      { name: "Income Tax", color: "#c6c6c6", price: 200 },
       { name: "Reading Railroad", color: "#96b2d3", price: 200 },
-      { name: "Oriental Avenue", color: "#b0c6f4", price: 100 },
+      { name: "Oriental Avenue", color: "#c1f0c1", price: 100 },
       { name: "Chance", color: "#f5e1b0", price: 0 },
-      { name: "Vermont Avenue", color: "#b0c6f4", price: 100 },
-      { name: "Connecticut Avenue", color: "#b0c6f4", price: 120 },
+      { name: "Vermont Avenue", color: "#c1f0c1", price: 100 },
+      { name: "Connecticut Avenue", color: "#c1f0c1", price: 120 },
       { name: "Jail", color: "#c6c6c6", price: 0 },
-      { name: "St. Charles Place", color: "#d3a0cd", price: 140 },
+      { name: "St. Charles Place", color: "#ffb0b0", price: 140 },
       { name: "Electric Company", color: "#96b2d3", price: 150 },
-      { name: "States Avenue", color: "#d3a0cd", price: 140 },
-      { name: "Virginia Avenue", color: "#d3a0cd", price: 160 },
-      { name: "St. James Place", color: "#e0a4b5", price: 180 },
+      { name: "States Avenue", color: "#ffb0b0", price: 140 },
+      { name: "Virginia Avenue", color: "#ffb0b0", price: 160 },
       { name: "Community Chest", color: "#f5e1b0", price: 0 },
-      { name: "Tennessee Avenue", color: "#e0a4b5", price: 180 },
-      { name: "New York Avenue", color: "#e0a4b5", price: 200 },
+      { name: "St. James Place", color: "#ffb0b0", price: 180 },
+      { name: "Tennessee Avenue", color: "#ffb0b0", price: 180 },
+      { name: "New York Avenue", color: "#ffb0b0", price: 200 },
       { name: "Free Parking", color: "#c6c6c6", price: 0 },
-      { name: "Kentucky Avenue", color: "#f1b6b1", price: 220 },
+      { name: "Kentucky Avenue", color: "#ffb0b0", price: 220 },
       { name: "Chance", color: "#f5e1b0", price: 0 },
-      { name: "Indiana Avenue", color: "#f1b6b1", price: 220 },
-      { name: "Illinois Avenue", color: "#f1b6b1", price: 240 },
+      { name: "Indiana Avenue", color: "#ffb0b0", price: 220 },
+      { name: "Illinois Avenue", color: "#ffb0b0", price: 240 },
       { name: "B&O Railroad", color: "#96b2d3", price: 200 },
       { name: "Atlantic Avenue", color: "#b0d5d5", price: 260 },
       { name: "Ventnor Avenue", color: "#b0d5d5", price: 260 },
-      { name: "Water Works", color: "#96b2d3", price: 150 },
-      { name: "Marvin Gardens", color: "#b0d5d5", price: 280 },
-      { name: "Go To Jail", color: "#c6c6c6", price: 0 },
-      { name: "Pacific Avenue", color: "#94b8c5", price: 300 },
-      { name: "North Carolina Avenue", color: "#94b8c5", price: 300 },
-      { name: "Community Chest", color: "#f5e1b0", price: 0 },
-      { name: "Pennsylvania Railroad", color: "#96b2d3", price: 200 },
-      { name: "Park Place", color: "#a0b8e0", price: 350 },
-      { name: "Luxury Tax", color: "#c6c6c6", price: 0 },
-      { name: "Boardwalk", color: "#a0b8e0", price: 400 }
-    ];
-
-    const canvas = document.getElementById('boardCanvas');
-    const ctx = canvas.getContext('2d');
-    const boardSize = 880;
-    const propertySize = 80;
-
-    function drawBoard() {
-      ctx.clearRect(0, 0, boardSize, boardSize);
-      ctx.lineWidth = 3;
-      
-      // Draw corners
-      drawCorner(0, 0, 0, "GO");
-      drawCorner(10, boardSize - propertySize, 0, "Jail");
-      drawCorner(20, boardSize - propertySize, boardSize - propertySize, "Free Parking");
-      drawCorner(30, 0, boardSize - propertySize, "Go To Jail");
-
-      // Top row (1–9)
-      for (let i = 1; i < 10; i++) {
-        drawProperty(i, propertySize * (i - 1), 0, 'top');
-      }
-
-      // Right row (11–19)
-      for (let i = 11; i < 20; i++) {
-        drawProperty(i, 0, boardSize - propertySize * (i - 10), 'left');
-      }
-
-      // Right row (21–29)
-      for (let i = 21; i < 30; i++) {
-        drawProperty(i, boardSize - propertySize, boardSize - propertySize * (i - 20), 'right');
-      }
-
-      // Draw top row (31-39)
-      for (let i = 31; i < 40; i++) {
-        drawProperty(i, boardSize - propertySize * (i - 30), 0, 'top');
-      }
-    }
-
-    function drawProperty(index, x, y, position) {
-      const property = properties[index];
-      ctx.fillStyle = property.color;
-      ctx.fillRect(x, y, propertySize, propertySize);
-
-      // Draw property name
-      ctx.fillStyle = "#000";
-      ctx.font = "12px Arial";
-      ctx.fillText(property.name, x + 5, y + 15);
-      ctx.fillText(`$${property.price}`, x + 5, y + 30);
-    }
-
-    function drawCorner(index, x, y, label) {
-      ctx.fillStyle = '#004080';
-      ctx.fillRect(x, y, propertySize, propertySize);
-      ctx.fillStyle = '#fff';
-      ctx.font = "12px Arial";
-      ctx.fillText(label, x + 5, y + 15);
-    }
-
-    // Event handler for the "Update Property" button
-    function updateProperty() {
-      const propertyIndex = parseInt(document.getElementById("property-index").value);
-      const propertyName = document.getElementById("property-name").value;
-      const propertyColor = document.getElementById("property-color").value;
-      const propertyPrice = parseInt(document.getElementById("property-price").value);
-
-      // Validate the input
-      if (propertyIndex < 0 || propertyIndex > 39) {
-        alert("Invalid property index.");
-        return;
-      }
-
-      // Update the selected property
-      const property = properties[propertyIndex];
-      property.name = propertyName;
-      property.color = propertyColor;
-      property.price = propertyPrice;
-
-      drawBoard(); // Redraw the board with updated properties
-    }
-
-    // Download the board as an image
-    function downloadBoardImage() {
-      const link = document.createElement('a');
-      link
-            { name: "Ventnor Avenue", color: "#b0d5d5", price: 260 },
       { name: "Water Works", color: "#96b2d3", price: 150 },
       { name: "Marvin Gardens", color: "#b0d5d5", price: 280 },
       { name: "Go To Jail", color: "#c6c6c6", price: 0 },
