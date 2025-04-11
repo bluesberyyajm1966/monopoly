@@ -1,218 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monopoly Game Maker</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    canvas {
-      display: block;
-      margin: 20px auto;
-      background-color: white;
-      border: 4px solid #333;
-    }
-    .customizer {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.2);
-    }
-    .form-row {
-      margin-bottom: 15px;
-    }
-    .form-row label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-    .form-row input, .form-row select {
-      width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    .form-row button {
-      padding: 12px 20px;
-      background: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .form-row button.save {
-      background: #2196f3;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Monopoly Game Maker</h1>
-  <canvas id="boardCanvas" width="880" height="880"></canvas>
+<script>
+  const canvas = document.getElementById("boardCanvas");
+  const ctx = canvas.getContext("2d");
 
-  <div class="customizer">
-    <h2>Customize Property</h2>
-    <div class="form-row">
-      <label for="property-index">Property Index (0-39)</label>
-      <input type="number" id="property-index" min="0" max="39">
-    </div>
-    <div class="form-row">
-      <label for="property-name">Name</label>
-      <input type="text" id="property-name">
-    </div>
-    <div class="form-row">
-      <label for="property-color">Color</label>
-      <input type="color" id="property-color" value="#ffebcd">
-    </div>
-    <div class="form-row">
-      <label for="property-price">Price</label>
-      <input type="number" id="property-price">
-    </div>
-    <div class="form-row">
-      <button onclick="updateProperty()">Update</button>
-      <button class="save" onclick="downloadBoardImage()">Download Board Image</button>
-    </div>
-  </div>
+  const propertySize = 80;
+  const boardSize = canvas.width;
 
-  <script>
-    const canvas = document.getElementById("boardCanvas");
-    const ctx = canvas.getContext("2d");
+  const properties = Array.from({ length: 40 }, (_, i) => ({
+    name: `Property ${i}`,
+    color: getPropertyColor(i),
+    price: 100 + i * 10,
+    type: getPropertyType(i)
+  }));
 
-    const cornerIcons = ['🟢 GO', '🚓 Jail', '🅿️ Free Parking', '🚨 Go to Jail'];
+  function getPropertyColor(i) {
+    const colorSets = [
+      '#8b4513', '#8b4513',
+      '#add8e6', '#add8e6', '#add8e6',
+      '#ff69b4', '#ff69b4', '#ff69b4',
+      '#ff4500', '#ff4500', '#ff4500',
+      '#ffff00', '#ffff00', '#ffff00',
+      '#008000', '#008000', '#008000',
+      '#0000ff', '#0000ff', '#0000ff'
+    ];
+    return colorSets[i % colorSets.length];
+  }
 
-    const properties = Array.from({ length: 40 }, (_, i) => ({
-      name: `Property ${i}`,
-      color: ['corner', 'special'].includes(getPropertyType(i)) ? '#ffffff' : getColor(i),
-      price: 100 + i * 10,
-      type: getPropertyType(i)
-    }));
+  function getPropertyType(i) {
+    if ([0, 10, 20, 30].includes(i)) return 'corner';
+    if ([5, 15, 25, 35].includes(i)) return 'railroad';
+    if ([12, 28].includes(i)) return 'utility';
+    return 'property';
+  }
 
-    function getColor(i) {
-      const colorSets = [
-        '#8b4513', '#8b4513',
-        '#add8e6', '#add8e6', '#add8e6',
-        '#ff69b4', '#ff69b4', '#ff69b4',
-        '#ff4500', '#ff4500', '#ff4500',
-        '#ffff00', '#ffff00', '#ffff00',
-        '#008000', '#008000', '#008000',
-        '#0000ff', '#0000ff', '#0000ff'
-      ];
-      return colorSets[i % colorSets.length];
+  function drawBoard() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw corners
+    drawCorner(0, boardSize - propertySize, boardSize - propertySize, 'GO');
+    drawCorner(10, 0, boardSize - propertySize, 'JAIL');
+    drawCorner(20, 0, 0, 'FREE PARKING');
+    drawCorner(30, boardSize - propertySize, 0, 'GO TO JAIL');
+
+    // Draw bottom row (1-9)
+    for (let i = 1; i < 10; i++) {
+      drawProperty(i, boardSize - propertySize * (i + 1), boardSize - propertySize, 'bottom');
     }
 
-    function getPropertyType(i) {
-      if ([0, 10, 20, 30].includes(i)) return 'corner';
-      if ([5, 15, 25, 35].includes(i)) return 'railroad';
-      if ([12, 28].includes(i)) return 'utility';
-      return 'property';
+    // Left row (11–19)
+    for (let i = 11; i < 20; i++) {
+      drawProperty(i, 0, boardSize - propertySize * (i - 9), 'left');
     }
 
-    function drawBoard() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const size = 80;
-
-      // Bottom side
-      drawProperty(0, 800, 800, size, size, properties[0], 'corner');
-      for (let i = 1; i < 10; i++) {
-        drawProperty(i, 800 - i * size, 800, size, size, properties[i], 'bottom');
-      }
-
-      // Left side
-      drawProperty(10, 0, 800, size, size, properties[10], 'corner');
-      for (let i = 11; i < 20; i++) {
-        drawProperty(i, 0, 800 - (i - 10) * size, size, size, properties[i], 'left');
-      }
-
-      // Top side
-      drawProperty(20, 0, 0, size, size, properties[20], 'corner');
-      for (let i = 21; i < 30; i++) {
-        drawProperty(i, (i - 20) * size, 0, size, size, properties[i], 'top');
-      }
-
-      // Right side
-      drawProperty(30, 800, 0, size, size, properties[30], 'corner');
-      for (let i = 31; i < 40; i++) {
-        drawProperty(i, 800, (i - 30) * size, size, size, properties[i], 'right');
-      }
+    // Top row (21–29)
+    for (let i = 21; i < 30; i++) {
+      drawProperty(i, propertySize * (i - 20), 0, 'top');
     }
 
-    function drawProperty(index, x, y, w, h, prop, side) {
-      const bandHeight = 20;
+    // Right row (31–39)
+    for (let i = 31; i < 40; i++) {
+      drawProperty(i, boardSize - propertySize, propertySize * (i - 30), 'right');
+    }
+  }
 
-      ctx.beginPath();
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x, y, w, h);
-      ctx.strokeRect(x, y, w, h);
+  function drawCorner(index, x, y, label) {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(x, y, propertySize, propertySize);
+    ctx.strokeRect(x, y, propertySize, propertySize);
+    ctx.fillStyle = "#000";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x + propertySize / 2, y + propertySize / 2);
+  }
 
-      if (prop.type === 'corner') {
-        ctx.beginPath();
-        ctx.fillStyle = '#f9f9f9';
-        ctx.fillRect(x, y, w, h);
-        ctx.strokeRect(x, y, w, h);
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 10px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(cornerIcons[Math.floor(index / 10)], x + w / 2, y + h / 2);
-        return;
-      }
+  function drawProperty(index, x, y, side) {
+    const prop = properties[index];
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(x, y, propertySize, propertySize);
+    ctx.strokeRect(x, y, propertySize, propertySize);
 
-      ctx.fillStyle = prop.color;
-      if (side === 'bottom') ctx.fillRect(x, y + h - bandHeight, w, bandHeight);
-      else if (side === 'top') ctx.fillRect(x, y, w, bandHeight);
-      else if (side === 'left') ctx.fillRect(x, y, bandHeight, h);
-      else if (side === 'right') ctx.fillRect(x + w - bandHeight, y, bandHeight, h);
-
-      ctx.fillStyle = '#000';
-      ctx.font = '10px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(prop.name, x + w / 2, y + h / 2 - 6);
-      ctx.fillText(`$${prop.price}`, x + w / 2, y + h / 2 + 6);
-
-      if (prop.type === 'railroad') {
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText('🚂', x + w / 2, y + h / 2 + 24);
-      } else if (prop.type === 'utility') {
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText('💡', x + w / 2, y + h / 2 + 24);
-      }
+    // Draw color bar
+    ctx.fillStyle = prop.color;
+    switch (side) {
+      case 'bottom':
+        ctx.fillRect(x, y, propertySize, 15);
+        break;
+      case 'top':
+        ctx.fillRect(x, y + propertySize - 15, propertySize, 15);
+        break;
+      case 'left':
+        ctx.fillRect(x + propertySize - 15, y, 15, propertySize);
+        break;
+      case 'right':
+        ctx.fillRect(x, y, 15, propertySize);
+        break;
     }
 
-    function updateProperty() {
-      const index = parseInt(document.getElementById("property-index").value);
-      const name = document.getElementById("property-name").value || properties[index].name;
-      const color = document.getElementById("property-color").value || properties[index].color;
-      const price = parseInt(document.getElementById("property-price").value) || properties[index].price;
-
-      if (index >= 0 && index < 40) {
-        properties[index].name = name;
-        properties[index].color = color;
-        properties[index].price = price;
-        drawBoard();
-      } else {
-        alert("Invalid property index.");
-      }
+    // Rotate text to face outside
+    ctx.save();
+    ctx.translate(x + propertySize / 2, y + propertySize / 2);
+    switch (side) {
+      case 'bottom': ctx.rotate(0); break;
+      case 'left': ctx.rotate(-Math.PI / 2); break;
+      case 'top': ctx.rotate(Math.PI); break;
+      case 'right': ctx.rotate(Math.PI / 2); break;
     }
+    ctx.fillStyle = "#000";
+    ctx.font = "10px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(prop.name, 0, 4);
+    ctx.restore();
+  }
 
-    function downloadBoardImage() {
-      const link = document.createElement('a');
-      link.download = 'monopoly_board.png';
-      link.href = canvas.toDataURL();
-      link.click();
+  function updateProperty() {
+    const index = parseInt(document.getElementById("property-index").value);
+    const name = document.getElementById("property-name").value;
+    const color = document.getElementById("property-color").value;
+    const price = parseInt(document.getElementById("property-price").value);
+
+    if (!isNaN(index) && properties[index]) {
+      properties[index].name = name || properties[index].name;
+      properties[index].color = color || properties[index].color;
+      properties[index].price = isNaN(price) ? properties[index].price : price;
+      drawBoard();
     }
+  }
 
-    drawBoard();
-  </script>
-</body>
-</html>
+  function downloadBoardImage() {
+    const link = document.createElement("a");
+    link.download = "monopoly_board.png";
+    link.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    link.click();
+  }
+
+  drawBoard();
+</script>
+
