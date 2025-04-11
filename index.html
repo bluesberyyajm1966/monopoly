@@ -1,127 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Monopoly Board Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-color@2.19.3/dist/react-color.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
-      #root {
-        height: 100%;
-      }
-    </style>
-  </head>
-  <body class="bg-gray-100">
-    <div id="root"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Monopoly Board</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0f24, #314155);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .settings {
+      margin-bottom: 30px;
+      background-color: #fff;
+      color: #000;
+      padding: 15px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    .settings input, .settings button {
+      margin: 5px;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .settings button {
+      background-color: #3e8e41;
+      color: #fff;
+      cursor: pointer;
+    }
+    .settings button:hover {
+      background-color: #2c6b2f;
+    }
+    .board-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      overflow: auto;
+    }
+    .board {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(11, 80px);
+      grid-template-rows: repeat(11, 80px);
+      background: #fff;
+      border: 10px solid #fff;
+      box-shadow: 0 0 20px #000;
+    }
+    .cell {
+      background-color: #f8f8f8;
+      color: black;
+      border: 1px solid #bbb;
+      font-size: 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 5px;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+    .property {
+      position: relative;
+    }
+    .property .color-bar {
+      width: 100%;
+      height: 10px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .property span {
+      font-size: 10px;
+      font-weight: bold;
+      padding-top: 12px;
+    }
+    .center-tile {
+      grid-column: 2 / span 9;
+      grid-row: 2 / span 9;
+      background-color: #3e8e41;
+      border: 2px dashed #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #fff;
+      padding: 20px;
+      text-shadow: 2px 2px #000;
+    }
+    .special-tile {
+      background-color: #ffc107;
+      font-weight: bold;
+      font-size: 9px;
+      justify-content: center;
+      align-items: center;
+    }
+    .chance {
+      background-color: #ff5722;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Custom Monopoly Board Generator</h1>
+  <div class="settings">
+    <label for="property-select">Choose Property:</label>
+    <select id="property-select"></select>
+    <label for="property-name">Custom Name:</label>
+    <input type="text" id="property-name" placeholder="Boardwalk">
+    <label for="property-color">Property Color:</label>
+    <input type="color" id="property-color">
+    <button onclick="customizeProperty()">Customize</button>
+  </div>
+  <div class="board-container">
+    <div class="board" id="board"></div>
+  </div>
 
-    <script type="text/babel">
-      const { useState } = React;
-      const { SketchPicker } = reactColor;
+  <script>
+    const board = document.getElementById('board');
+    const standardProperties = [
+      { name: 'Mediterranean Ave', color: '#8B4513' },
+      { name: 'Baltic Ave', color: '#8B4513' },
+      { name: 'Oriental Ave', color: '#ADD8E6' },
+      { name: 'Vermont Ave', color: '#ADD8E6' },
+      { name: 'Connecticut Ave', color: '#ADD8E6' },
+      { name: 'St. Charles Place', color: '#FF00FF' },
+      { name: 'States Ave', color: '#FF00FF' },
+      { name: 'Virginia Ave', color: '#FF00FF' },
+      { name: 'St. James Place', color: '#FFA500' },
+      { name: 'Tennessee Ave', color: '#FFA500' },
+      { name: 'New York Ave', color: '#FFA500' },
+      { name: 'Kentucky Ave', color: '#FF0000' },
+      { name: 'Indiana Ave', color: '#FF0000' },
+      { name: 'Illinois Ave', color: '#FF0000' },
+      { name: 'Atlantic Ave', color: '#FFFF00' },
+      { name: 'Ventnor Ave', color: '#FFFF00' },
+      { name: 'Marvin Gardens', color: '#FFFF00' },
+      { name: 'Pacific Ave', color: '#008000' },
+      { name: 'North Carolina Ave', color: '#008000' },
+      { name: 'Pennsylvania Ave', color: '#008000' },
+      { name: 'Park Place', color: '#0000FF' },
+      { name: 'Boardwalk', color: '#0000FF' }
+    ];
 
-      const defaultTiles = Array.from({ length: 40 }, (_, i) => ({
-        name: \`Tile \${i + 1}\`,
-        color: "#ffffff",
-        type: "property",
-        price: 0,
-      }));
+    const specialTiles = {
+      110: 'GO',
+      120: 'JAIL',
+      10: 'FREE PARKING',
+      0: 'GO TO JAIL',
+      18: 'CHANCE',
+      93: 'CHANCE'
+    };
 
-      function MonopolyBoardGenerator() {
-        const [tiles, setTiles] = useState(defaultTiles);
-        const [selectedTileIndex, setSelectedTileIndex] = useState(0);
+    const propertyOrder = [];
+    for (let i = 10; i > 0; i--) propertyOrder.push(110 + i); // bottom row
+    for (let i = 1; i <= 9; i++) propertyOrder.push(i * 11); // left column
+    for (let i = 0; i <= 10; i++) propertyOrder.push(i); // top row
+    for (let i = 9; i >= 1; i--) propertyOrder.push(i * 11 + 10); // right column
 
-        const updateTile = (field, value) => {
-          const updated = [...tiles];
-          updated[selectedTileIndex] = {
-            ...updated[selectedTileIndex],
-            [field]: value,
-          };
-          setTiles(updated);
-        };
+    const propertyCells = [];
 
-        const getGridPosition = (index) => {
-          if (index < 10) {
-            return { gridColumn: 11 - index, gridRow: 11 };
-          } else if (index < 20) {
-            return { gridColumn: 1, gridRow: 20 - index };
-          } else if (index < 30) {
-            return { gridColumn: index - 19, gridRow: 1 };
-          } else {
-            return { gridColumn: 11, gridRow: index - 29 };
+    for (let row = 0; row < 11; row++) {
+      for (let col = 0; col < 11; col++) {
+        const index = row * 11 + col;
+        const cell = document.createElement('div');
+
+        if (row > 0 && row < 10 && col > 0 && col < 10) {
+          if (row === 5 && col === 5) {
+            cell.className = 'cell center-tile';
+            cell.textContent = 'MONOPOLY';
+            board.appendChild(cell);
+            col = 9;
           }
-        };
+          continue;
+        }
 
-        return (
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white shadow p-4 rounded">
-              <h2 className="text-lg font-bold mb-4">Edit Tile</h2>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={tiles[selectedTileIndex].name}
-                  onChange={(e) => updateTile("name", e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-                <SketchPicker
-                  color={tiles[selectedTileIndex].color}
-                  onChangeComplete={(color) => updateTile("color", color.hex)}
-                />
-                <input
-                  type="text"
-                  value={tiles[selectedTileIndex].type}
-                  onChange={(e) => updateTile("type", e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-                <input
-                  type="number"
-                  value={tiles[selectedTileIndex].price}
-                  onChange={(e) => updateTile("price", parseInt(e.target.value) || 0)}
-                  className="w-full border p-2 rounded"
-                />
-                <button
-                  onClick={() => setSelectedTileIndex((selectedTileIndex + 1) % tiles.length)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  Next Tile
-                </button>
-              </div>
-            </div>
+        cell.classList.add('cell');
 
-            <div className="grid grid-cols-11 grid-rows-11 gap-1 w-full aspect-square">
-              {tiles.map((tile, index) => {
-                const pos = getGridPosition(index);
-                return (
-                  <div
-                    key={index}
-                    onClick={() => setSelectedTileIndex(index)}
-                    style={{
-                      backgroundColor: tile.color,
-                      gridColumnStart: pos.gridColumn,
-                      gridRowStart: pos.gridRow,
-                    }}
-                    className={`border text-[10px] p-1 text-center flex items-center justify-center cursor-pointer ${
-                      selectedTileIndex === index ? "ring-2 ring-blue-500" : ""
-                    }`}
-                  >
-                    {tile.name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
+        if (specialTiles[index]) {
+          cell.classList.add(index === 18 || index === 93 ? 'chance' : 'special-tile');
+          cell.textContent = specialTiles[index];
+        } else if (propertyOrder.includes(index)) {
+          const propertyIndex = propertyCells.length;
+          if (propertyIndex < standardProperties.length) {
+            const propData = standardProperties[propertyIndex];
+            cell.classList.add('property');
+            cell.dataset.index = index;
+            cell.dataset.name = propData.name;
+            cell.dataset.color = propData.color;
+
+            const colorBar = document.createElement('div');
+            colorBar.className = 'color-bar';
+            colorBar.style.backgroundColor = propData.color;
+            const label = document.createElement('span');
+            label.textContent = propData.name;
+            cell.appendChild(colorBar);
+            cell.appendChild(label);
+
+            cell.addEventListener('click', () => {
+              const newName = prompt('Enter new property name:', cell.dataset.name);
+              if (newName) {
+                cell.dataset.name = newName;
+                cell.querySelector('span').textContent = newName;
+                document.querySelector(`#property-select option[value='${propertyIndex}']`).textContent = newName;
+              }
+              const newColor = prompt('Enter new color (hex or name):', cell.dataset.color);
+              if (newColor) {
+                cell.dataset.color = newColor;
+                cell.querySelector('.color-bar').style.backgroundColor = newColor;
+              }
+            });
+
+            propertyCells.push(cell);
+          }
+        }
+
+        board.appendChild(cell);
       }
+    }
 
-      const root = ReactDOM.createRoot(document.getElementById("root"));
-      root.render(<MonopolyBoardGenerator />);
-    </script>
-  </body>
+    const propertySelect = document.getElementById('property-select');
+    propertyCells.forEach((cell, idx) => {
+      const option = document.createElement('option');
+      option.value = idx;
+      option.textContent = cell.dataset.name;
+      propertySelect.appendChild(option);
+    });
+
+    function customizeProperty() {
+      const idx = document.getElementById('property-select').value;
+      const name = document.getElementById('property-name').value.trim();
+      const color = document.getElementById('property-color').value;
+      const cell = propertyCells[idx];
+      if (name) {
+        cell.querySelector('span').textContent = name;
+        cell.dataset.name = name;
+        document.querySelector(`#property-select option[value='${idx}']`).textContent = name;
+      }
+      if (color) {
+        cell.dataset.color = color;
+        cell.querySelector('.color-bar').style.backgroundColor = color;
+      }
+    }
+  </script>
+</body>
 </html>
