@@ -1,218 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monopoly Game Maker</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    canvas {
-      display: block;
-      margin: 20px auto;
-      background-color: white;
-      border: 4px solid #333;
-    }
-    .customizer {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.2);
-    }
-    .form-row {
-      margin-bottom: 15px;
-    }
-    .form-row label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-    .form-row input, .form-row select {
-      width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    .form-row button {
-      padding: 12px 20px;
-      background: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .form-row button.save {
-      background: #2196f3;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Monopoly Game Maker</h1>
-  <canvas id="boardCanvas" width="880" height="880"></canvas>
+import React, { useState } from "react";
+import { SketchPicker } from "react-color";
 
-  <div class="customizer">
-    <h2>Customize Property</h2>
-    <div class="form-row">
-      <label for="property-index">Property Index (0-39)</label>
-      <input type="number" id="property-index" min="0" max="39">
+const defaultTiles = Array.from({ length: 40 }, (_, i) => ({
+  name: `Tile ${i + 1}`,
+  color: "#ffffff",
+  type: "property",
+  price: 0
+}));
+
+export default function MonopolyBoardGenerator() {
+  const [tiles, setTiles] = useState(defaultTiles);
+  const [selectedTileIndex, setSelectedTileIndex] = useState(0);
+
+  const updateTile = (field, value) => {
+    const updated = [...tiles];
+    updated[selectedTileIndex] = {
+      ...updated[selectedTileIndex],
+      [field]: value,
+    };
+    setTiles(updated);
+  };
+
+  const loadBoard = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const loadedTiles = JSON.parse(e.target.result);
+        if (Array.isArray(loadedTiles) && loadedTiles.length === 40) {
+          setTiles(loadedTiles);
+        } else {
+          alert("Invalid board data");
+        }
+      } catch (error) {
+        console.error("Error loading board:", error);
+        alert("Failed to load board");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const getGridPosition = (index) => {
+    if (index < 10) {
+      return { gridColumn: 11 - index, gridRow: 11 };
+    } else if (index < 20) {
+      return { gridColumn: 1, gridRow: 20 - index };
+    } else if (index < 30) {
+      return { gridColumn: index - 19, gridRow: 1 };
+    } else {
+      return { gridColumn: 11, gridRow: index - 29 };
+    }
+  };
+
+  return (
+    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white shadow-md rounded-xl p-4">
+        <h2 className="text-xl font-bold mb-4">Edit Tile</h2>
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Tile Name"
+            className="w-full p-2 border rounded"
+            value={tiles[selectedTileIndex].name}
+            onChange={(e) => updateTile("name", e.target.value)}
+          />
+          <SketchPicker
+            color={tiles[selectedTileIndex].color}
+            onChangeComplete={(color) => updateTile("color", color.hex)}
+          />
+          <input
+            type="text"
+            placeholder="Tile Type"
+            className="w-full p-2 border rounded"
+            value={tiles[selectedTileIndex].type}
+            onChange={(e) => updateTile("type", e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Tile Price"
+            className="w-full p-2 border rounded"
+            value={tiles[selectedTileIndex].price}
+            onChange={(e) => updateTile("price", parseInt(e.target.value) || 0)}
+          />
+          <button
+            onClick={() => setSelectedTileIndex((selectedTileIndex + 1) % tiles.length)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Next Tile
+          </button>
+          <label className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">
+            Load Board
+            <input
+              type="file"
+              accept="application/json"
+              onChange={(e) => loadBoard(e)}
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-11 grid-rows-11 gap-1 w-full aspect-square">
+        {tiles.map((tile, index) => {
+          const pos = getGridPosition(index);
+          return (
+            <div
+              key={index}
+              onClick={() => setSelectedTileIndex(index)}
+              style={{ ...pos, backgroundColor: tile.color }}
+              className={`border text-xs p-1 flex items-center justify-center cursor-pointer ${
+                selectedTileIndex === index ? "ring-2 ring-blue-500" : ""
+              }`}
+            >
+              {tile.name}
+            </div>
+          );
+        })}
+      </div>
     </div>
-    <div class="form-row">
-      <label for="property-name">Name</label>
-      <input type="text" id="property-name">
-    </div>
-    <div class="form-row">
-      <label for="property-color">Color</label>
-      <input type="color" id="property-color" value="#ffebcd">
-    </div>
-    <div class="form-row">
-      <label for="property-price">Price</label>
-      <input type="number" id="property-price">
-    </div>
-    <div class="form-row">
-      <button onclick="updateProperty()">Update</button>
-      <button class="save" onclick="downloadBoardImage()">Download Board Image</button>
-    </div>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("boardCanvas");
-    const ctx = canvas.getContext("2d");
-
-    const cornerIcons = ['🟢 GO', '🚓 Jail', '🅿️ Free Parking', '🚨 Go to Jail'];
-
-    const properties = Array.from({ length: 40 }, (_, i) => ({
-      name: Property ${i},
-      color: ['corner', 'special'].includes(getPropertyType(i)) ? '#ffffff' : getColor(i),
-      price: 100 + i * 10,
-      type: getPropertyType(i)
-    }));
-
-    function getColor(i) {
-      const colorSets = [
-        '#8b4513', '#8b4513',
-        '#add8e6', '#add8e6', '#add8e6',
-        '#ff69b4', '#ff69b4', '#ff69b4',
-        '#ff4500', '#ff4500', '#ff4500',
-        '#ffff00', '#ffff00', '#ffff00',
-        '#008000', '#008000', '#008000',
-        '#0000ff', '#0000ff', '#0000ff'
-      ];
-      return colorSets[i % colorSets.length];
-    }
-
-    function getPropertyType(i) {
-      if ([0, 10, 20, 30].includes(i)) return 'corner';
-      if ([5, 15, 25, 35].includes(i)) return 'railroad';
-      if ([12, 28].includes(i)) return 'utility';
-      return 'property';
-    }
-
-    function drawBoard() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const size = 80;
-
-      // Bottom side
-      drawProperty(0, 800, 800, size, size, properties[0], 'corner');
-      for (let i = 1; i < 10; i++) {
-        drawProperty(i, 800 - i * size, 800, size, size, properties[i], 'bottom');
-      }
-
-      // Left side
-      drawProperty(10, 0, 800, size, size, properties[10], 'corner');
-      for (let i = 11; i < 20; i++) {
-        drawProperty(i, 0, 800 - (i - 10) * size, size, size, properties[i], 'left');
-      }
-
-      // Top side
-      drawProperty(20, 0, 0, size, size, properties[20], 'corner');
-      for (let i = 21; i < 30; i++) {
-        drawProperty(i, (i - 20) * size, 0, size, size, properties[i], 'top');
-      }
-
-      // Right side
-      drawProperty(30, 800, 0, size, size, properties[30], 'corner');
-      for (let i = 31; i < 40; i++) {
-        drawProperty(i, 800, (i - 30) * size, size, size, properties[i], 'right');
-      }
-    }
-
-    function drawProperty(index, x, y, w, h, prop, side) {
-      const bandHeight = 20;
-
-      ctx.beginPath();
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x, y, w, h);
-      ctx.strokeRect(x, y, w, h);
-
-      if (prop.type === 'corner') {
-        ctx.beginPath();
-        ctx.fillStyle = '#f9f9f9';
-        ctx.fillRect(x, y, w, h);
-        ctx.strokeRect(x, y, w, h);
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 10px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(cornerIcons[Math.floor(index / 10)], x + w / 2, y + h / 2);
-        return;
-      }
-
-      ctx.fillStyle = prop.color;
-      if (side === 'bottom') ctx.fillRect(x, y + h - bandHeight, w, bandHeight);
-      else if (side === 'top') ctx.fillRect(x, y, w, bandHeight);
-      else if (side === 'left') ctx.fillRect(x, y, bandHeight, h);
-      else if (side === 'right') ctx.fillRect(x + w - bandHeight, y, bandHeight, h);
-
-      ctx.fillStyle = '#000';
-      ctx.font = '10px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(prop.name, x + w / 2, y + h / 2 - 6);
-      ctx.fillText($${prop.price}, x + w / 2, y + h / 2 + 6);
-
-      if (prop.type === 'railroad') {
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText('🚂', x + w / 2, y + h / 2 + 24);
-      } else if (prop.type === 'utility') {
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText('💡', x + w / 2, y + h / 2 + 24);
-      }
-    }
-
-    function updateProperty() {
-      const index = parseInt(document.getElementById("property-index").value);
-      const name = document.getElementById("property-name").value || properties[index].name;
-      const color = document.getElementById("property-color").value || properties[index].color;
-      const price = parseInt(document.getElementById("property-price").value) || properties[index].price;
-
-      if (index >= 0 && index < 40) {
-        properties[index].name = name;
-        properties[index].color = color;
-        properties[index].price = price;
-        drawBoard();
-      } else {
-        alert("Invalid property index.");
-      }
-    }
-
-    function downloadBoardImage() {
-      const link = document.createElement('a');
-      link.download = 'monopoly_board.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-
-    drawBoard();
-  </script>
-</body>
-</html>
+  );
+}
