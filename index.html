@@ -6,12 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-color/dist/react-color.min.js"></script>
+    <script src="https://unpkg.com/react-color@2.19.3/dist/react-color.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #root {
+        height: 100%;
+      }
+    </style>
   </head>
   <body class="bg-gray-100">
-    <div id="root" class="p-4"></div>
+    <div id="root"></div>
 
     <script type="text/babel">
       const { useState } = React;
@@ -50,16 +60,15 @@
         };
 
         return (
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white shadow-md rounded-xl p-4">
-              <h2 className="text-xl font-bold mb-4">Edit Tile</h2>
-              <div className="space-y-4">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white shadow p-4 rounded">
+              <h2 className="text-lg font-bold mb-4">Edit Tile</h2>
+              <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Tile Name"
-                  className="w-full p-2 border rounded"
                   value={tiles[selectedTileIndex].name}
                   onChange={(e) => updateTile("name", e.target.value)}
+                  className="w-full border p-2 rounded"
                 />
                 <SketchPicker
                   color={tiles[selectedTileIndex].color}
@@ -67,25 +76,19 @@
                 />
                 <input
                   type="text"
-                  placeholder="Tile Type"
-                  className="w-full p-2 border rounded"
                   value={tiles[selectedTileIndex].type}
                   onChange={(e) => updateTile("type", e.target.value)}
+                  className="w-full border p-2 rounded"
                 />
                 <input
                   type="number"
-                  placeholder="Tile Price"
-                  className="w-full p-2 border rounded"
                   value={tiles[selectedTileIndex].price}
-                  onChange={(e) =>
-                    updateTile("price", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateTile("price", parseInt(e.target.value) || 0)}
+                  className="w-full border p-2 rounded"
                 />
                 <button
-                  onClick={() =>
-                    setSelectedTileIndex((selectedTileIndex + 1) % tiles.length)
-                  }
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                  onClick={() => setSelectedTileIndex((selectedTileIndex + 1) % tiles.length)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
                   Next Tile
                 </button>
@@ -100,12 +103,11 @@
                     key={index}
                     onClick={() => setSelectedTileIndex(index)}
                     style={{
-                      ...pos,
                       backgroundColor: tile.color,
                       gridColumnStart: pos.gridColumn,
                       gridRowStart: pos.gridRow,
                     }}
-                    className={`border text-xs p-1 flex items-center justify-center cursor-pointer ${
+                    className={`border text-[10px] p-1 text-center flex items-center justify-center cursor-pointer ${
                       selectedTileIndex === index ? "ring-2 ring-blue-500" : ""
                     }`}
                   >
@@ -118,7 +120,8 @@
         );
       }
 
-      ReactDOM.createRoot(document.getElementById("root")).render(<MonopolyBoardGenerator />);
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<MonopolyBoardGenerator />);
     </script>
   </body>
 </html>
