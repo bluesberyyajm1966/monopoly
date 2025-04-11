@@ -24,7 +24,7 @@
       border-radius: 10px;
       display: inline-block;
     }
-    .settings input, .settings button {
+    .settings input, .settings button, .settings select {
       margin: 5px;
       padding: 10px;
       font-size: 14px;
@@ -62,15 +62,14 @@
       font-size: 10px;
       text-align: center;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
       align-items: center;
-      padding: 5px;
+      justify-content: center;
       box-sizing: border-box;
       cursor: pointer;
     }
     .property {
       position: relative;
+      padding: 0;
     }
     .property .color-bar {
       width: 100%;
@@ -79,10 +78,37 @@
       top: 0;
       left: 0;
     }
+    .cell-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+      transform-origin: center center;
+    }
+    .top .cell-content {
+      transform: rotate(0deg);
+    }
+    .bottom .cell-content {
+      transform: rotate(180deg);
+    }
+    .left .cell-content {
+      transform: rotate(90deg);
+    }
+    .right .cell-content {
+      transform: rotate(-90deg);
+    }
     .property span {
       font-size: 10px;
       font-weight: bold;
-      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .property .price {
+      font-size: 10px;
+      font-weight: normal;
     }
     .center-tile {
       grid-column: 2 / span 9;
@@ -121,6 +147,8 @@
     <input type="text" id="property-name" placeholder="Boardwalk">
     <label for="property-color">Property Color:</label>
     <input type="color" id="property-color">
+    <label for="property-price">Price:</label>
+    <input type="number" id="property-price" placeholder="200">
     <button onclick="customizeProperty()">Customize</button>
   </div>
   <div class="board-container">
@@ -164,7 +192,7 @@
     };
 
     const propertyOrder = [];
-    for (let i = 10; i > 0; i--) propertyOrder.push(110 + i); // bottom row
+    for (let i = 0; i <= 10; i++) propertyOrder.push(110 + i); // bottom row (left to right)
     for (let i = 1; i <= 9; i++) propertyOrder.push(i * 11); // left column
     for (let i = 0; i <= 10; i++) propertyOrder.push(i); // top row
     for (let i = 9; i >= 1; i--) propertyOrder.push(i * 11 + 10); // right column
@@ -199,26 +227,49 @@
             cell.dataset.index = index;
             cell.dataset.name = propData.name;
             cell.dataset.color = propData.color;
+            cell.dataset.price = '200'; // default price
+
+            // Add orientation class
+            if (row === 0) cell.classList.add('top');
+            else if (row === 10) cell.classList.add('bottom');
+            else if (col === 0) cell.classList.add('left');
+            else if (col === 10) cell.classList.add('right');
+
+            const cellContent = document.createElement('div');
+            cellContent.className = 'cell-content';
 
             const colorBar = document.createElement('div');
             colorBar.className = 'color-bar';
             colorBar.style.backgroundColor = propData.color;
+
             const label = document.createElement('span');
             label.textContent = propData.name;
-            cell.appendChild(colorBar);
-            cell.appendChild(label);
+
+            const price = document.createElement('div');
+            price.className = 'price';
+            price.textContent = '$200';
+
+            cellContent.appendChild(colorBar);
+            cellContent.appendChild(label);
+            cellContent.appendChild(price);
+            cell.appendChild(cellContent);
 
             cell.addEventListener('click', () => {
               const newName = prompt('Enter new property name:', cell.dataset.name);
               if (newName) {
                 cell.dataset.name = newName;
-                cell.querySelector('span').textContent = newName;
+                label.textContent = newName;
                 document.querySelector(`#property-select option[value='${propertyIndex}']`).textContent = newName;
               }
               const newColor = prompt('Enter new color (hex or name):', cell.dataset.color);
               if (newColor) {
                 cell.dataset.color = newColor;
-                cell.querySelector('.color-bar').style.backgroundColor = newColor;
+                colorBar.style.backgroundColor = newColor;
+              }
+              const newPrice = prompt('Enter new property price:', cell.dataset.price);
+              if (newPrice) {
+                cell.dataset.price = newPrice;
+                price.textContent = `$${newPrice}`;
               }
             });
 
@@ -242,15 +293,24 @@
       const idx = document.getElementById('property-select').value;
       const name = document.getElementById('property-name').value.trim();
       const color = document.getElementById('property-color').value;
+      const price = document.getElementById('property-price').value.trim();
       const cell = propertyCells[idx];
+      const label = cell.querySelector('span');
+      const colorBar = cell.querySelector('.color-bar');
+      const priceLabel = cell.querySelector('.price');
+
       if (name) {
-        cell.querySelector('span').textContent = name;
+        label.textContent = name;
         cell.dataset.name = name;
-        document.querySelector(`#property-select option[value='${idx}']`).textContent = name;
+        propertySelect.options[idx].textContent = name;
       }
       if (color) {
         cell.dataset.color = color;
-        cell.querySelector('.color-bar').style.backgroundColor = color;
+        colorBar.style.backgroundColor = color;
+      }
+      if (price) {
+        cell.dataset.price = price;
+        priceLabel.textContent = `$${price}`;
       }
     }
   </script>
