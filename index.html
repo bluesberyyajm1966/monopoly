@@ -29,12 +29,12 @@
 
     .board {
       display: grid;
-      grid-template-columns: repeat(11, 1fr);
-      grid-template-rows: repeat(11, 1fr);
       width: 90vmin;
       height: 90vmin;
-      background: white;
+      grid-template-columns: repeat(11, 1fr);
+      grid-template-rows: repeat(11, 1fr);
       border: 8px solid black;
+      background: white;
     }
 
     .tile {
@@ -42,26 +42,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2px;
       font-size: 0.6vw;
+      padding: 4px;
       text-align: center;
       overflow-wrap: break-word;
       cursor: pointer;
       background: white;
+      writing-mode: horizontal-tb;
+      transform-origin: center;
     }
 
     .corner {
-      grid-column: span 2;
-      grid-row: span 2;
       font-size: 0.9vw;
-    }
-
-    .horizontal {
       writing-mode: horizontal-tb;
-    }
-
-    .vertical {
-      writing-mode: vertical-lr;
+      font-weight: bold;
     }
 
     .tile[data-edge="top"] { transform: rotate(180deg); }
@@ -99,57 +93,92 @@
   <div class="board" id="board"></div>
 
   <script>
-    const board = document.getElementById('board');
+    const board = document.getElementById("board");
 
-    const layout = [
-      // Top row (left to right)
-      { name: "Free Kisses", class: "special", type: "corner", edge: "top" },
-      ...["Sunset Views", "Love Letters", "Poetry Night", "Story Time", "Heart Line", "Bubble Baths", "Shared Journal", "Spa Date", "Brunch Dates"].map((name, i) => ({
-        name,
-        class: ["red", "special", "red", "red", "railroad", "yellow", "yellow", "utility", "yellow"][i],
-        type: "horizontal", edge: "top"
-      })),
-      { name: "Go To Couch", class: "special", type: "corner", edge: "top" },
+    const positions = new Array(121).fill(null);
 
-      // Right column (top to bottom)
-      ...["Morning Cuddles", "Utility Bills", "Couple Playlist", "Couple Selfies", "Love Line", "Couple’s Retreat", "Cozy Fireplace", "Hot Cocoa Date", "Warm Blankets"].map((name, i) => ({
-        name,
-        class: ["pink", "utility", "pink", "pink", "railroad", "orange", "special", "orange", "orange"][i],
-        type: "vertical", edge: "right"
-      })),
-
-      // Bottom row (right to left)
-      { name: "Forever Home", class: "special", type: "corner", edge: "bottom" },
-      ...["GO", "Love Nest", "Pillow Talk", "Snuggle Stop", "Train Ride", "Date Night", "Couple Goals", "Inside Jokes", "Matching Outfits"].reverse().map((name, i) => ({
-        name,
-        class: ["special", "dark-purple", "special", "dark-purple", "railroad", "light-blue", "special", "light-blue", "light-blue"][8 - i],
-        type: "horizontal", edge: "bottom"
-      })),
-      { name: "Jail", class: "special", type: "corner", edge: "bottom" },
-
-      // Left column (bottom to top)
-      ...["Blank", "Love Forever", "Matching Mugs", "Anniversary", "Kiss Line", "Rainy Days", "Movie Marathon", "Late Night Talks", "Star Gazing"].reverse().map((name, i) => ({
-        name,
-        class: ["special", "special", "dark-blue", "special", "railroad", "green", "special", "green", "green"][8 - i],
-        type: "vertical", edge: "left"
-      }))
-    ];
-
-    layout.forEach(tileData => {
+    // Helper to place tiles by row/col
+    function placeTile(row, col, name, cssClass, edge = "") {
       const tile = document.createElement("div");
-      tile.className = `tile ${tileData.type || ""} ${tileData.class || ""}`;
-      if (tileData.type === "corner") tile.classList.add("corner");
-      tile.dataset.edge = tileData.edge || "";
-      tile.textContent = tileData.name;
-
+      tile.className = `tile ${cssClass}`;
+      if ((row === 0 || row === 10) && (col === 0 || col === 10)) tile.classList.add("corner");
+      tile.dataset.edge = edge;
+      tile.textContent = name;
       tile.addEventListener("click", () => {
         const newText = prompt("Rename this tile:", tile.textContent);
         if (newText && newText.trim()) {
           tile.textContent = newText.trim();
         }
       });
+      positions[row * 11 + col] = tile;
+    }
 
-      board.appendChild(tile);
+    // Place corners
+    placeTile(0, 0, "Free Kisses", "special", "top");
+    placeTile(0, 10, "Go To Couch", "special", "top");
+    placeTile(10, 10, "Forever Home", "special", "bottom");
+    placeTile(10, 0, "Jail", "special", "bottom");
+
+    // Top edge (left to right)
+    const topTiles = [
+      ["Sunset Views", "red"],
+      ["Love Letters", "special"],
+      ["Poetry Night", "red"],
+      ["Story Time", "red"],
+      ["Heart Line", "railroad"],
+      ["Bubble Baths", "yellow"],
+      ["Shared Journal", "yellow"],
+      ["Spa Date", "utility"],
+      ["Brunch Dates", "yellow"]
+    ];
+    topTiles.forEach((t, i) => placeTile(0, i + 1, t[0], t[1], "top"));
+
+    // Right edge (top to bottom)
+    const rightTiles = [
+      ["Morning Cuddles", "pink"],
+      ["Utility Bills", "utility"],
+      ["Couple Playlist", "pink"],
+      ["Couple Selfies", "pink"],
+      ["Love Line", "railroad"],
+      ["Couple’s Retreat", "orange"],
+      ["Cozy Fireplace", "special"],
+      ["Hot Cocoa Date", "orange"],
+      ["Warm Blankets", "orange"]
+    ];
+    rightTiles.forEach((t, i) => placeTile(i + 1, 10, t[0], t[1], "right"));
+
+    // Bottom edge (right to left)
+    const bottomTiles = [
+      ["GO", "special"],
+      ["Love Nest", "dark-purple"],
+      ["Pillow Talk", "special"],
+      ["Snuggle Stop", "dark-purple"],
+      ["Train Ride", "railroad"],
+      ["Date Night", "light-blue"],
+      ["Couple Goals", "special"],
+      ["Inside Jokes", "light-blue"],
+      ["Matching Outfits", "light-blue"]
+    ];
+    bottomTiles.forEach((t, i) => placeTile(10, 9 - i, t[0], t[1], "bottom"));
+
+    // Left edge (bottom to top)
+    const leftTiles = [
+      ["Star Gazing", "green"],
+      ["Late Night Talks", "green"],
+      ["Movie Marathon", "special"],
+      ["Rainy Days", "green"],
+      ["Kiss Line", "railroad"],
+      ["Anniversary", "special"],
+      ["Matching Mugs", "dark-blue"],
+      ["Love Forever", "special"],
+      ["Blank", "special"]
+    ];
+    leftTiles.forEach((t, i) => placeTile(9 - i, 0, t[0], t[1], "left"));
+
+    // Fill the board
+    positions.forEach((tile, i) => {
+      const cell = tile || document.createElement("div");
+      board.appendChild(cell);
     });
   </script>
 </body>
