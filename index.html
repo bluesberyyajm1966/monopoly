@@ -4,21 +4,25 @@
   <meta charset="UTF-8">
   <title>Love-opoly</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
+      padding: 20px;
+      background: #f5f5f5;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
     }
 
     h1 {
-      background-color: red;
       color: white;
-      padding: 12px 30px;
-      border-radius: 10px;
+      background: red;
+      padding: 10px 30px;
+      border-radius: 15px;
       font-size: 2.5rem;
       margin-bottom: 20px;
     }
@@ -29,39 +33,34 @@
       grid-template-rows: repeat(11, 1fr);
       width: 90vmin;
       height: 90vmin;
-      aspect-ratio: 1;
-      border: 6px solid black;
-      box-sizing: border-box;
+      background: white;
+      border: 8px solid black;
     }
 
     .tile {
-      border: 1px solid #000;
-      box-sizing: border-box;
+      border: 1px solid black;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.65vw;
-      padding: 4px;
+      padding: 2px;
+      font-size: 0.6vw;
       text-align: center;
-      writing-mode: vertical-lr;
-      transform-origin: center;
-      cursor: pointer;
       overflow-wrap: break-word;
-      background-color: white;
+      cursor: pointer;
+      background: white;
     }
 
-    .tile.corner {
+    .corner {
       grid-column: span 2;
       grid-row: span 2;
       font-size: 0.9vw;
+    }
+
+    .horizontal {
       writing-mode: horizontal-tb;
     }
 
-    .tile.horizontal {
-      writing-mode: horizontal-tb;
-    }
-
-    .tile.vertical {
+    .vertical {
       writing-mode: vertical-lr;
     }
 
@@ -69,6 +68,7 @@
     .tile[data-edge="right"] { transform: rotate(-90deg); }
     .tile[data-edge="left"] { transform: rotate(90deg); }
 
+    /* Colors */
     .dark-purple { background-color: #5a2a82; color: white; }
     .light-blue { background-color: #add8e6; }
     .pink { background-color: #ff69b4; }
@@ -78,12 +78,18 @@
     .green { background-color: #008000; color: white; }
     .dark-blue { background-color: #00008b; color: white; }
     .railroad { background-color: #ccc; }
-    .utility { background-color: #ddd; font-style: italic; }
-    .special { background-color: #eee; }
+    .utility { background-color: #eee; font-style: italic; }
+    .special { background-color: #fff; }
 
     @media print {
       body {
-        zoom: 1.5;
+        zoom: 1.2;
+        background: white;
+      }
+      .board {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
       }
     }
   </style>
@@ -98,50 +104,52 @@
     const layout = [
       // Top row (left to right)
       { name: "Free Kisses", class: "special", type: "corner", edge: "top" },
-      ...Array(9).fill().map((_, i) => ({
-        name: ["Sunset Views", "Love Letters", "Poetry Night", "Story Time", "Heart Line", "Bubble Baths", "Shared Journal", "Spa Date", "Brunch Dates"][i],
+      ...["Sunset Views", "Love Letters", "Poetry Night", "Story Time", "Heart Line", "Bubble Baths", "Shared Journal", "Spa Date", "Brunch Dates"].map((name, i) => ({
+        name,
         class: ["red", "special", "red", "red", "railroad", "yellow", "yellow", "utility", "yellow"][i],
         type: "horizontal", edge: "top"
       })),
       { name: "Go To Couch", class: "special", type: "corner", edge: "top" },
 
-      // Right side (top to bottom)
-      ...Array(9).fill().map((_, i) => ({
-        name: ["Morning Cuddles", "Utility Bills", "Couple Playlist", "Couple Selfies", "Love Line", "Couple’s Retreat", "Cozy Fireplace", "Hot Cocoa Date", "Warm Blankets"][i],
+      // Right column (top to bottom)
+      ...["Morning Cuddles", "Utility Bills", "Couple Playlist", "Couple Selfies", "Love Line", "Couple’s Retreat", "Cozy Fireplace", "Hot Cocoa Date", "Warm Blankets"].map((name, i) => ({
+        name,
         class: ["pink", "utility", "pink", "pink", "railroad", "orange", "special", "orange", "orange"][i],
         type: "vertical", edge: "right"
       })),
 
       // Bottom row (right to left)
-      { name: "Jail", class: "special", type: "corner", edge: "bottom" },
-      ...Array(9).fill().map((_, i) => ({
-        name: ["Matching Outfits", "Inside Jokes", "Couple Goals", "Date Night", "Train Ride", "Snuggle Stop", "Pillow Talk", "Love Nest", "GO"][8 - i],
-        class: ["light-blue", "light-blue", "special", "light-blue", "railroad", "dark-purple", "special", "dark-purple", "special"][8 - i],
+      { name: "Forever Home", class: "special", type: "corner", edge: "bottom" },
+      ...["GO", "Love Nest", "Pillow Talk", "Snuggle Stop", "Train Ride", "Date Night", "Couple Goals", "Inside Jokes", "Matching Outfits"].reverse().map((name, i) => ({
+        name,
+        class: ["special", "dark-purple", "special", "dark-purple", "railroad", "light-blue", "special", "light-blue", "light-blue"][8 - i],
         type: "horizontal", edge: "bottom"
       })),
-      { name: "Forever Home", class: "special", type: "corner", edge: "bottom" },
+      { name: "Jail", class: "special", type: "corner", edge: "bottom" },
 
-      // Left side (bottom to top)
-      ...Array(9).fill().map((_, i) => ({
-        name: ["Star Gazing", "Late Night Talks", "Movie Marathon", "Rainy Days", "Kiss Line", "Anniversary", "Matching Mugs", "Love Forever", "Blank"][8 - i],
-        class: ["green", "green", "special", "green", "railroad", "special", "dark-blue", "special", "special"][8 - i],
+      // Left column (bottom to top)
+      ...["Blank", "Love Forever", "Matching Mugs", "Anniversary", "Kiss Line", "Rainy Days", "Movie Marathon", "Late Night Talks", "Star Gazing"].reverse().map((name, i) => ({
+        name,
+        class: ["special", "special", "dark-blue", "special", "railroad", "green", "special", "green", "green"][8 - i],
         type: "vertical", edge: "left"
       }))
     ];
 
-    layout.forEach((tileData, i) => {
-      const tile = document.createElement('div');
-      tile.className = `tile ${tileData.type || ''} ${tileData.class || ''}`;
-      tile.dataset.edge = tileData.edge || '';
+    layout.forEach(tileData => {
+      const tile = document.createElement("div");
+      tile.className = `tile ${tileData.type || ""} ${tileData.class || ""}`;
+      if (tileData.type === "corner") tile.classList.add("corner");
+      tile.dataset.edge = tileData.edge || "";
       tile.textContent = tileData.name;
-      board.appendChild(tile);
 
-      tile.addEventListener('click', () => {
-        const newText = prompt("Rename tile:", tile.textContent);
-        if (newText && newText.trim() !== '') {
+      tile.addEventListener("click", () => {
+        const newText = prompt("Rename this tile:", tile.textContent);
+        if (newText && newText.trim()) {
           tile.textContent = newText.trim();
         }
       });
+
+      board.appendChild(tile);
     });
   </script>
 </body>
