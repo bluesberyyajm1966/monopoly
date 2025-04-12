@@ -5,8 +5,9 @@
   <title>Love-opoly</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #cce0e0;
+      background-color: #f2f2f2;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -16,48 +17,58 @@
     h1 {
       background-color: red;
       color: white;
-      padding: 10px 20px;
+      padding: 12px 30px;
       border-radius: 10px;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
     }
 
     .board {
       display: grid;
-      grid-template-columns: repeat(11, 60px);
-      grid-template-rows: repeat(11, 60px);
-      gap: 2px;
-      margin-top: 20px;
-      position: relative;
+      grid-template-columns: repeat(11, 1fr);
+      grid-template-rows: repeat(11, 1fr);
+      width: 90vmin;
+      height: 90vmin;
+      aspect-ratio: 1;
+      border: 6px solid black;
+      box-sizing: border-box;
     }
 
     .tile {
-      background-color: #fff;
-      border: 2px solid #000;
+      border: 1px solid #000;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 0.65vw;
+      padding: 4px;
       text-align: center;
-      cursor: pointer;
-      padding: 5px;
-      box-sizing: border-box;
-      word-break: break-word;
+      writing-mode: vertical-lr;
       transform-origin: center;
+      cursor: pointer;
+      overflow-wrap: break-word;
+      background-color: white;
     }
 
-    .tile:hover {
-      background-color: #fdd;
+    .tile.corner {
+      grid-column: span 2;
+      grid-row: span 2;
+      font-size: 0.9vw;
+      writing-mode: horizontal-tb;
     }
 
-    .tile span {
-      display: inline-block;
+    .tile.horizontal {
+      writing-mode: horizontal-tb;
     }
 
-    /* Outside-facing rotations */
+    .tile.vertical {
+      writing-mode: vertical-lr;
+    }
+
     .tile[data-edge="top"] { transform: rotate(180deg); }
-    .tile[data-edge="right"] { transform: rotate(270deg); }
+    .tile[data-edge="right"] { transform: rotate(-90deg); }
     .tile[data-edge="left"] { transform: rotate(90deg); }
 
-    /* Monopoly color styles */
     .dark-purple { background-color: #5a2a82; color: white; }
     .light-blue { background-color: #add8e6; }
     .pink { background-color: #ff69b4; }
@@ -69,6 +80,12 @@
     .railroad { background-color: #ccc; }
     .utility { background-color: #ddd; font-style: italic; }
     .special { background-color: #eee; }
+
+    @media print {
+      body {
+        zoom: 1.5;
+      }
+    }
   </style>
 </head>
 <body>
@@ -78,98 +95,54 @@
   <script>
     const board = document.getElementById('board');
 
-    const tiles = [
-      // Bottom row (0–10)
-      { name: "GO", class: "special", edge: "bottom" },
-      { name: "Love Nest", class: "dark-purple", edge: "bottom" },
-      { name: "Pillow Talk", class: "special", edge: "bottom" },
-      { name: "Snuggle Stop", class: "dark-purple", edge: "bottom" },
-      { name: "Sweet Tax", class: "special", edge: "bottom" },
-      { name: "Train Ride", class: "railroad", edge: "bottom" },
-      { name: "Date Night", class: "light-blue", edge: "bottom" },
-      { name: "Couple Goals", class: "special", edge: "bottom" },
-      { name: "Inside Jokes", class: "light-blue", edge: "bottom" },
-      { name: "Matching Outfits", class: "light-blue", edge: "bottom" },
-      { name: "Jail", class: "special", edge: "bottom" },
+    const layout = [
+      // Top row (left to right)
+      { name: "Free Kisses", class: "special", type: "corner", edge: "top" },
+      ...Array(9).fill().map((_, i) => ({
+        name: ["Sunset Views", "Love Letters", "Poetry Night", "Story Time", "Heart Line", "Bubble Baths", "Shared Journal", "Spa Date", "Brunch Dates"][i],
+        class: ["red", "special", "red", "red", "railroad", "yellow", "yellow", "utility", "yellow"][i],
+        type: "horizontal", edge: "top"
+      })),
+      { name: "Go To Couch", class: "special", type: "corner", edge: "top" },
 
-      // Right side (11–19)
-      { name: "Morning Cuddles", class: "pink", edge: "right" },
-      { name: "Utility Bills", class: "utility", edge: "right" },
-      { name: "Couple Playlist", class: "pink", edge: "right" },
-      { name: "Couple Selfies", class: "pink", edge: "right" },
-      { name: "Love Line", class: "railroad", edge: "right" },
-      { name: "Couple’s Retreat", class: "orange", edge: "right" },
-      { name: "Cozy Fireplace", class: "special", edge: "right" },
-      { name: "Hot Cocoa Date", class: "orange", edge: "right" },
-      { name: "Warm Blankets", class: "orange", edge: "right" },
+      // Right side (top to bottom)
+      ...Array(9).fill().map((_, i) => ({
+        name: ["Morning Cuddles", "Utility Bills", "Couple Playlist", "Couple Selfies", "Love Line", "Couple’s Retreat", "Cozy Fireplace", "Hot Cocoa Date", "Warm Blankets"][i],
+        class: ["pink", "utility", "pink", "pink", "railroad", "orange", "special", "orange", "orange"][i],
+        type: "vertical", edge: "right"
+      })),
 
-      // Top row (20–30)
-      { name: "FREE KISS", class: "special", edge: "top" },
-      { name: "Sunset Views", class: "red", edge: "top" },
-      { name: "Love Letters", class: "special", edge: "top" },
-      { name: "Poetry Night", class: "red", edge: "top" },
-      { name: "Story Time", class: "red", edge: "top" },
-      { name: "Heart Line", class: "railroad", edge: "top" },
-      { name: "Bubble Baths", class: "yellow", edge: "top" },
-      { name: "Shared Journal", class: "yellow", edge: "top" },
-      { name: "Spa Date", class: "utility", edge: "top" },
-      { name: "Brunch Dates", class: "yellow", edge: "top" },
-      { name: "GO TO COUCH", class: "special", edge: "top" },
+      // Bottom row (right to left)
+      { name: "Jail", class: "special", type: "corner", edge: "bottom" },
+      ...Array(9).fill().map((_, i) => ({
+        name: ["Matching Outfits", "Inside Jokes", "Couple Goals", "Date Night", "Train Ride", "Snuggle Stop", "Pillow Talk", "Love Nest", "GO"][8 - i],
+        class: ["light-blue", "light-blue", "special", "light-blue", "railroad", "dark-purple", "special", "dark-purple", "special"][8 - i],
+        type: "horizontal", edge: "bottom"
+      })),
+      { name: "Forever Home", class: "special", type: "corner", edge: "bottom" },
 
-      // Left side (31–39)
-      { name: "Star Gazing", class: "green", edge: "left" },
-      { name: "Late Night Talks", class: "green", edge: "left" },
-      { name: "Movie Marathon", class: "special", edge: "left" },
-      { name: "Rainy Days", class: "green", edge: "left" },
-      { name: "Kiss Line", class: "railroad", edge: "left" },
-      { name: "Anniversary", class: "special", edge: "left" },
-      { name: "Matching Mugs", class: "dark-blue", edge: "left" },
-      { name: "Love Forever", class: "special", edge: "left" },
-      { name: "Forever Home", class: "dark-blue", edge: "left" },
+      // Left side (bottom to top)
+      ...Array(9).fill().map((_, i) => ({
+        name: ["Star Gazing", "Late Night Talks", "Movie Marathon", "Rainy Days", "Kiss Line", "Anniversary", "Matching Mugs", "Love Forever", "Blank"][8 - i],
+        class: ["green", "green", "special", "green", "railroad", "special", "dark-blue", "special", "special"][8 - i],
+        type: "vertical", edge: "left"
+      }))
     ];
 
-    function createBoard() {
-      for (let i = 0; i < 121; i++) {
-        const tile = document.createElement('div');
-        tile.classList.add('tile');
+    layout.forEach((tileData, i) => {
+      const tile = document.createElement('div');
+      tile.className = `tile ${tileData.type || ''} ${tileData.class || ''}`;
+      tile.dataset.edge = tileData.edge || '';
+      tile.textContent = tileData.name;
+      board.appendChild(tile);
 
-        const edgeIndex = getEdgeIndex(i);
-        if (edgeIndex !== null) {
-          const data = tiles[edgeIndex];
-          tile.classList.add(data.class);
-          tile.dataset.edge = data.edge;
-
-          const text = document.createElement('span');
-          text.textContent = data.name;
-          tile.appendChild(text);
-
-          tile.addEventListener('click', () => {
-            const newName = prompt("Enter new tile name:", text.textContent);
-            if (newName !== null && newName.trim() !== '') {
-              text.textContent = newName.trim();
-            }
-          });
-        } else {
-          tile.style.visibility = 'hidden';
+      tile.addEventListener('click', () => {
+        const newText = prompt("Rename tile:", tile.textContent);
+        if (newText && newText.trim() !== '') {
+          tile.textContent = newText.trim();
         }
-
-        board.appendChild(tile);
-      }
-    }
-
-    function getEdgeIndex(i) {
-      const row = Math.floor(i / 11);
-      const col = i % 11;
-
-      if (row === 10) return col; // Bottom
-      if (col === 10 && row !== 10 && row !== 0) return 10 + (row - 1); // Right
-      if (row === 0) return 20 + (10 - col); // Top
-      if (col === 0 && row !== 0 && row !== 10) return 30 + (10 - row); // Left
-
-      return null;
-    }
-
-    createBoard();
+      });
+    });
   </script>
 </body>
 </html>
