@@ -7,37 +7,14 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #0a0f24, #314155);
-      color: #fff;
+      background: #fff;
+      color: #000;
       margin: 0;
       padding: 20px;
       text-align: center;
     }
     h1 {
       margin-bottom: 20px;
-    }
-    .settings {
-      margin-bottom: 30px;
-      background-color: #fff;
-      color: #000;
-      padding: 15px;
-      border-radius: 10px;
-      display: inline-block;
-    }
-    .settings input, .settings button, .settings select {
-      margin: 5px;
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .settings button {
-      background-color: #3e8e41;
-      color: #fff;
-      cursor: pointer;
-    }
-    .settings button:hover {
-      background-color: #2c6b2f;
     }
     .board-container {
       display: flex;
@@ -49,66 +26,67 @@
     .board {
       position: relative;
       display: grid;
-      grid-template-columns: repeat(11, 80px);
-      grid-template-rows: repeat(11, 80px);
+      grid-template-columns: repeat(11, 100px);
+      grid-template-rows: repeat(11, 100px);
       background: #fff;
-      border: 10px solid #fff;
-      box-shadow: 0 0 20px #000;
+      border: 10px solid #000;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      transform-origin: top left;
     }
     .cell {
       background-color: #f8f8f8;
       color: black;
-      border: 1px solid #bbb;
-      font-size: 10px;
+      border: 1px solid #000;
+      font-size: 12px;
       text-align: center;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      align-items: center;
+      padding: 5px;
       box-sizing: border-box;
       cursor: pointer;
+      transform-origin: center;
+      overflow: hidden;
     }
     .property {
       position: relative;
-      padding: 0;
     }
-    .property .color-bar {
-      width: 100%;
-      height: 10px;
+    .color-bar {
       position: absolute;
+      z-index: 1;
+    }
+    .property[data-edge="bottom"] .color-bar {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+    }
+    .property[data-edge="top"] .color-bar {
       top: 0;
       left: 0;
-    }
-    .cell-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      height: 100%;
       width: 100%;
-      padding: 5px;
-      box-sizing: border-box;
-      transform-origin: center center;
+      height: 15px;
     }
-    .top .cell-content {
-      transform: rotate(0deg);
+    .property[data-edge="left"] .color-bar {
+      top: 0;
+      left: 0;
+      width: 15px;
+      height: 100%;
     }
-    .bottom .cell-content {
-      transform: rotate(180deg);
-    }
-    .left .cell-content {
-      transform: rotate(90deg);
-    }
-    .right .cell-content {
-      transform: rotate(-90deg);
+    .property[data-edge="right"] .color-bar {
+      top: 0;
+      right: 0;
+      width: 15px;
+      height: 100%;
     }
     .property span {
-      font-size: 10px;
+      font-size: 12px;
       font-weight: bold;
-      margin-top: 12px;
-    }
-    .property .price {
-      font-size: 10px;
-      font-weight: normal;
+      transform: rotate(var(--text-rotation, 0deg));
+      text-align: center;
+      z-index: 2;
+      white-space: nowrap;
     }
     .center-tile {
       grid-column: 2 / span 9;
@@ -140,64 +118,40 @@
 </head>
 <body>
   <h1>Custom Monopoly Board Generator</h1>
-  <div class="settings">
-    <label for="property-select">Choose Property:</label>
-    <select id="property-select"></select>
-    <label for="property-name">Custom Name:</label>
-    <input type="text" id="property-name" placeholder="Boardwalk">
-    <label for="property-color">Property Color:</label>
-    <input type="color" id="property-color">
-    <label for="property-price">Price:</label>
-    <input type="number" id="property-price" placeholder="200">
-    <button onclick="customizeProperty()">Customize</button>
-  </div>
   <div class="board-container">
     <div class="board" id="board"></div>
   </div>
-
   <script>
     const board = document.getElementById('board');
-    const standardProperties = [
-      { name: 'Mediterranean Ave', color: '#8B4513' },
-      { name: 'Baltic Ave', color: '#8B4513' },
-      { name: 'Oriental Ave', color: '#ADD8E6' },
-      { name: 'Vermont Ave', color: '#ADD8E6' },
-      { name: 'Connecticut Ave', color: '#ADD8E6' },
-      { name: 'St. Charles Place', color: '#FF00FF' },
-      { name: 'States Ave', color: '#FF00FF' },
-      { name: 'Virginia Ave', color: '#FF00FF' },
-      { name: 'St. James Place', color: '#FFA500' },
-      { name: 'Tennessee Ave', color: '#FFA500' },
-      { name: 'New York Ave', color: '#FFA500' },
-      { name: 'Kentucky Ave', color: '#FF0000' },
-      { name: 'Indiana Ave', color: '#FF0000' },
-      { name: 'Illinois Ave', color: '#FF0000' },
-      { name: 'Atlantic Ave', color: '#FFFF00' },
-      { name: 'Ventnor Ave', color: '#FFFF00' },
-      { name: 'Marvin Gardens', color: '#FFFF00' },
-      { name: 'Pacific Ave', color: '#008000' },
-      { name: 'North Carolina Ave', color: '#008000' },
-      { name: 'Pennsylvania Ave', color: '#008000' },
-      { name: 'Park Place', color: '#0000FF' },
-      { name: 'Boardwalk', color: '#0000FF' }
-    ];
 
     const specialTiles = {
-      110: 'GO',
-      120: 'JAIL',
-      10: 'FREE PARKING',
-      0: 'GO TO JAIL',
-      18: 'CHANCE',
-      93: 'CHANCE'
+      0: 'GO',
+      10: 'JAIL',
+      110: 'FREE PARKING',
+      120: 'GO TO JAIL'
     };
 
-    const propertyOrder = [];
-    for (let i = 0; i <= 10; i++) propertyOrder.push(110 + i); // bottom row (left to right)
-    for (let i = 1; i <= 9; i++) propertyOrder.push(i * 11); // left column
-    for (let i = 0; i <= 10; i++) propertyOrder.push(i); // top row
-    for (let i = 9; i >= 1; i--) propertyOrder.push(i * 11 + 10); // right column
+    const positions = [];
+    const edges = [];
 
-    const propertyCells = [];
+    for (let i = 9; i >= 1; i--) { positions.push(110 + i); edges.push('bottom'); }
+    for (let i = 9; i >= 1; i--) { positions.push(i * 11); edges.push('left'); }
+    for (let i = 1; i <= 9; i++) { positions.push(i); edges.push('top'); }
+    for (let i = 1; i <= 9; i++) { positions.push(i * 11 + 10); edges.push('right'); }
+
+    const rotations = {
+      top: '0deg',
+      bottom: '180deg',
+      left: '-90deg',
+      right: '90deg'
+    };
+
+    const properties = positions.map((pos, i) => ({
+      name: `Property ${i + 1}`,
+      color: `hsl(${(i * 37) % 360}, 70%, 50%)`,
+      edge: edges[i],
+      rotation: rotations[edges[i]]
+    }));
 
     for (let row = 0; row < 11; row++) {
       for (let col = 0; col < 11; col++) {
@@ -208,109 +162,36 @@
           if (row === 5 && col === 5) {
             cell.className = 'cell center-tile';
             cell.textContent = 'MONOPOLY';
-            board.appendChild(cell);
-            col = 9;
           }
+          board.appendChild(cell);
           continue;
         }
 
-        cell.classList.add('cell');
+        cell.className = 'cell';
 
         if (specialTiles[index]) {
-          cell.classList.add(index === 18 || index === 93 ? 'chance' : 'special-tile');
+          cell.classList.add('special-tile');
           cell.textContent = specialTiles[index];
-        } else if (propertyOrder.includes(index)) {
-          const propertyIndex = propertyCells.length;
-          if (propertyIndex < standardProperties.length) {
-            const propData = standardProperties[propertyIndex];
+        } else {
+          const tileIndex = positions.indexOf(index);
+          if (tileIndex !== -1) {
+            const prop = properties[tileIndex];
             cell.classList.add('property');
-            cell.dataset.index = index;
-            cell.dataset.name = propData.name;
-            cell.dataset.color = propData.color;
-            cell.dataset.price = '200'; // default price
+            cell.dataset.edge = prop.edge;
+            cell.style.setProperty('--text-rotation', prop.rotation);
 
-            // Add orientation class
-            if (row === 0) cell.classList.add('top');
-            else if (row === 10) cell.classList.add('bottom');
-            else if (col === 0) cell.classList.add('left');
-            else if (col === 10) cell.classList.add('right');
-
-            const cellContent = document.createElement('div');
-            cellContent.className = 'cell-content';
-
-            const colorBar = document.createElement('div');
-            colorBar.className = 'color-bar';
-            colorBar.style.backgroundColor = propData.color;
+            const bar = document.createElement('div');
+            bar.className = 'color-bar';
+            bar.style.backgroundColor = prop.color;
 
             const label = document.createElement('span');
-            label.textContent = propData.name;
+            label.textContent = prop.name;
 
-            const price = document.createElement('div');
-            price.className = 'price';
-            price.textContent = '$200';
-
-            cellContent.appendChild(colorBar);
-            cellContent.appendChild(label);
-            cellContent.appendChild(price);
-            cell.appendChild(cellContent);
-
-            cell.addEventListener('click', () => {
-              const newName = prompt('Enter new property name:', cell.dataset.name);
-              if (newName) {
-                cell.dataset.name = newName;
-                label.textContent = newName;
-                document.querySelector(`#property-select option[value='${propertyIndex}']`).textContent = newName;
-              }
-              const newColor = prompt('Enter new color (hex or name):', cell.dataset.color);
-              if (newColor) {
-                cell.dataset.color = newColor;
-                colorBar.style.backgroundColor = newColor;
-              }
-              const newPrice = prompt('Enter new property price:', cell.dataset.price);
-              if (newPrice) {
-                cell.dataset.price = newPrice;
-                price.textContent = `$${newPrice}`;
-              }
-            });
-
-            propertyCells.push(cell);
+            cell.appendChild(bar);
+            cell.appendChild(label);
           }
         }
-
         board.appendChild(cell);
-      }
-    }
-
-    const propertySelect = document.getElementById('property-select');
-    propertyCells.forEach((cell, idx) => {
-      const option = document.createElement('option');
-      option.value = idx;
-      option.textContent = cell.dataset.name;
-      propertySelect.appendChild(option);
-    });
-
-    function customizeProperty() {
-      const idx = document.getElementById('property-select').value;
-      const name = document.getElementById('property-name').value.trim();
-      const color = document.getElementById('property-color').value;
-      const price = document.getElementById('property-price').value.trim();
-      const cell = propertyCells[idx];
-      const label = cell.querySelector('span');
-      const colorBar = cell.querySelector('.color-bar');
-      const priceLabel = cell.querySelector('.price');
-
-      if (name) {
-        label.textContent = name;
-        cell.dataset.name = name;
-        propertySelect.options[idx].textContent = name;
-      }
-      if (color) {
-        cell.dataset.color = color;
-        colorBar.style.backgroundColor = color;
-      }
-      if (price) {
-        cell.dataset.price = price;
-        priceLabel.textContent = `$${price}`;
       }
     }
   </script>
