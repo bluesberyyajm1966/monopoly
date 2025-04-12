@@ -48,24 +48,27 @@
       background-color: #fdd;
     }
 
-    /* Outside-facing rotations */
-    .tile[data-edge="top"] {
-      transform: rotate(180deg);
-    }
-
-    .tile[data-edge="right"] {
-      transform: rotate(270deg);
-    }
-
-    .tile[data-edge="left"] {
-      transform: rotate(90deg);
-    }
-
-    /* Optional: Fix upside down cursor issue */
     .tile span {
       display: inline-block;
-      transform: rotate(0deg);
     }
+
+    /* Outside-facing rotations */
+    .tile[data-edge="top"] { transform: rotate(180deg); }
+    .tile[data-edge="right"] { transform: rotate(270deg); }
+    .tile[data-edge="left"] { transform: rotate(90deg); }
+
+    /* Monopoly color styles */
+    .dark-purple { background-color: #5a2a82; color: white; }
+    .light-blue { background-color: #add8e6; }
+    .pink { background-color: #ff69b4; }
+    .orange { background-color: #ffa500; }
+    .red { background-color: #ff0000; color: white; }
+    .yellow { background-color: #ffff66; }
+    .green { background-color: #008000; color: white; }
+    .dark-blue { background-color: #00008b; color: white; }
+    .railroad { background-color: #ccc; }
+    .utility { background-color: #ddd; font-style: italic; }
+    .special { background-color: #eee; }
   </style>
 </head>
 <body>
@@ -76,53 +79,53 @@
     const board = document.getElementById('board');
 
     const tiles = [
-      // Bottom (0–10)
-      { name: "HOME", color: "#fff", edge: "bottom" },
-      { name: "Read Together", color: "#f28", edge: "bottom" },
-      { name: "Cook Dinner", color: "#88f", edge: "bottom" },
-      { name: "Picnic", color: "#8f8", edge: "bottom" },
-      { name: "Mini Trip", color: "#ff8", edge: "bottom" },
-      { name: "Board Games", color: "#faa", edge: "bottom" },
-      { name: "Tea Time", color: "#fc0", edge: "bottom" },
-      { name: "Cuddle", color: "#aaf", edge: "bottom" },
-      { name: "Love Letter", color: "#afa", edge: "bottom" },
-      { name: "Photo Shoot", color: "#f8f", edge: "bottom" },
-      { name: "Jail", color: "#ccc", edge: "bottom" },
+      // Bottom row (0–10)
+      { name: "GO", class: "special", edge: "bottom" },
+      { name: "Love Nest", class: "dark-purple", edge: "bottom" },
+      { name: "Pillow Talk", class: "special", edge: "bottom" },
+      { name: "Snuggle Stop", class: "dark-purple", edge: "bottom" },
+      { name: "Sweet Tax", class: "special", edge: "bottom" },
+      { name: "Train Ride", class: "railroad", edge: "bottom" },
+      { name: "Date Night", class: "light-blue", edge: "bottom" },
+      { name: "Couple Goals", class: "special", edge: "bottom" },
+      { name: "Inside Jokes", class: "light-blue", edge: "bottom" },
+      { name: "Matching Outfits", class: "light-blue", edge: "bottom" },
+      { name: "Jail", class: "special", edge: "bottom" },
 
-      // Right (11–19)
-      { name: "Kiss Token", color: "#fcc", edge: "right" },
-      { name: "Pick a Date", color: "#cdf", edge: "right" },
-      { name: "Secret Gift", color: "#fed", edge: "right" },
-      { name: "Ask a Question", color: "#aff", edge: "right" },
-      { name: "Tickle Fight", color: "#fad", edge: "right" },
-      { name: "Dream Share", color: "#ddf", edge: "right" },
-      { name: "Write a Poem", color: "#cfc", edge: "right" },
-      { name: "Favorite Song", color: "#fcf", edge: "right" },
-      { name: "Wish Jar", color: "#fff", edge: "right" },
+      // Right side (11–19)
+      { name: "Morning Cuddles", class: "pink", edge: "right" },
+      { name: "Utility Bills", class: "utility", edge: "right" },
+      { name: "Couple Playlist", class: "pink", edge: "right" },
+      { name: "Couple Selfies", class: "pink", edge: "right" },
+      { name: "Love Line", class: "railroad", edge: "right" },
+      { name: "Couple’s Retreat", class: "orange", edge: "right" },
+      { name: "Cozy Fireplace", class: "special", edge: "right" },
+      { name: "Hot Cocoa Date", class: "orange", edge: "right" },
+      { name: "Warm Blankets", class: "orange", edge: "right" },
 
-      // Top (20–30)
-      { name: "Couch Time", color: "#eee", edge: "top" },
-      { name: "Puzzle Date", color: "#f8f", edge: "top" },
-      { name: "Massage", color: "#afa", edge: "top" },
-      { name: "Netflix", color: "#aaf", edge: "top" },
-      { name: "Dance", color: "#fc0", edge: "top" },
-      { name: "Snack Time", color: "#faa", edge: "top" },
-      { name: "Compliment", color: "#ff8", edge: "top" },
-      { name: "Hug Break", color: "#8f8", edge: "top" },
-      { name: "Movie Night", color: "#88f", edge: "top" },
-      { name: "Free Kiss", color: "#f28", edge: "top" },
-      { name: "Start", color: "#fff", edge: "top" },
+      // Top row (20–30)
+      { name: "FREE KISS", class: "special", edge: "top" },
+      { name: "Sunset Views", class: "red", edge: "top" },
+      { name: "Love Letters", class: "special", edge: "top" },
+      { name: "Poetry Night", class: "red", edge: "top" },
+      { name: "Story Time", class: "red", edge: "top" },
+      { name: "Heart Line", class: "railroad", edge: "top" },
+      { name: "Bubble Baths", class: "yellow", edge: "top" },
+      { name: "Shared Journal", class: "yellow", edge: "top" },
+      { name: "Spa Date", class: "utility", edge: "top" },
+      { name: "Brunch Dates", class: "yellow", edge: "top" },
+      { name: "GO TO COUCH", class: "special", edge: "top" },
 
-      // Left (31–39)
-      { name: "💋", color: "#fcc", edge: "left" },
-      { name: "Talk Time", color: "#cdf", edge: "left" },
-      { name: "Game Night", color: "#fed", edge: "left" },
-      { name: "Bubble Bath", color: "#aff", edge: "left" },
-      { name: "Slow Dance", color: "#fad", edge: "left" },
-      { name: "Stargazing", color: "#ddf", edge: "left" },
-      { name: "Free Choice", color: "#cfc", edge: "left" },
-      { name: "Walk", color: "#fcf", edge: "left" },
-      { name: "Story Time", color: "#fff", edge: "left" },
+      // Left side (31–39)
+      { name: "Star Gazing", class: "green", edge: "left" },
+      { name: "Late Night Talks", class: "green", edge: "left" },
+      { name: "Movie Marathon", class: "special", edge: "left" },
+      { name: "Rainy Days", class: "green", edge: "left" },
+      { name: "Kiss Line", class: "railroad", edge: "left" },
+      { name: "Anniversary", class: "special", edge: "left" },
+      { name: "Matching Mugs", class: "dark-blue", edge: "left" },
+      { name: "Love Forever", class: "special", edge: "left" },
+      { name: "Forever Home", class: "dark-blue", edge: "left" },
     ];
 
     function createBoard() {
@@ -133,10 +136,9 @@
         const edgeIndex = getEdgeIndex(i);
         if (edgeIndex !== null) {
           const data = tiles[edgeIndex];
-          tile.style.backgroundColor = data.color;
+          tile.classList.add(data.class);
           tile.dataset.edge = data.edge;
 
-          // Wrap text in span for cursor fix
           const text = document.createElement('span');
           text.textContent = data.name;
           tile.appendChild(text);
