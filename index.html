@@ -41,6 +41,7 @@
       padding: 5px;
       box-sizing: border-box;
       transition: all 0.3s ease;
+      word-break: break-word;
     }
 
     .tile:hover {
@@ -69,39 +70,7 @@
     const board = document.getElementById('board');
 
     const tiles = [
-      { name: "Start", color: "#fff", rotate: "bottom" },
-      { name: "Free Kiss", color: "#f28", rotate: "bottom" },
-      { name: "Movie Night", color: "#88f", rotate: "bottom" },
-      { name: "Hug Break", color: "#8f8", rotate: "bottom" },
-      { name: "Compliment", color: "#ff8", rotate: "bottom" },
-      { name: "Snack Time", color: "#faa", rotate: "bottom" },
-      { name: "Dance", color: "#fc0", rotate: "bottom" },
-      { name: "Netflix", color: "#aaf", rotate: "bottom" },
-      { name: "Massage", color: "#afa", rotate: "bottom" },
-      { name: "Puzzle Date", color: "#f8f", rotate: "bottom" },
-      { name: "Go to Couch", color: "#ccc", rotate: "bottom" },
-
-      { name: "💋", color: "#fcc", rotate: "left" },
-      { name: "Talk Time", color: "#cdf", rotate: "left" },
-      { name: "Game Night", color: "#fed", rotate: "left" },
-      { name: "Bubble Bath", color: "#aff", rotate: "left" },
-      { name: "Slow Dance", color: "#fad", rotate: "left" },
-      { name: "Stargazing", color: "#ddf", rotate: "left" },
-      { name: "Free Choice", color: "#cfc", rotate: "left" },
-      { name: "Walk", color: "#fcf", rotate: "left" },
-      { name: "Story Time", color: "#fff", rotate: "left" },
-      { name: "Visit", color: "#eee", rotate: "left" },
-
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-      { name: "Blank", color: "#cce0e0" },
-
+      // Bottom row (right to left)
       { name: "HOME", color: "#fff", rotate: "top" },
       { name: "Read Together", color: "#f28", rotate: "top" },
       { name: "Cook Dinner", color: "#88f", rotate: "top" },
@@ -114,6 +83,7 @@
       { name: "Photo Shoot", color: "#f8f", rotate: "top" },
       { name: "Jail", color: "#ccc", rotate: "top" },
 
+      // Right column (bottom to top)
       { name: "Kiss Token", color: "#fcc", rotate: "right" },
       { name: "Pick a Date", color: "#cdf", rotate: "right" },
       { name: "Secret Gift", color: "#fed", rotate: "right" },
@@ -124,6 +94,31 @@
       { name: "Favorite Song", color: "#fcf", rotate: "right" },
       { name: "Wish Jar", color: "#fff", rotate: "right" },
       { name: "Couch Time", color: "#eee", rotate: "right" },
+
+      // Top row (left to right)
+      { name: "Start", color: "#fff", rotate: "bottom" },
+      { name: "Free Kiss", color: "#f28", rotate: "bottom" },
+      { name: "Movie Night", color: "#88f", rotate: "bottom" },
+      { name: "Hug Break", color: "#8f8", rotate: "bottom" },
+      { name: "Compliment", color: "#ff8", rotate: "bottom" },
+      { name: "Snack Time", color: "#faa", rotate: "bottom" },
+      { name: "Dance", color: "#fc0", rotate: "bottom" },
+      { name: "Netflix", color: "#aaf", rotate: "bottom" },
+      { name: "Massage", color: "#afa", rotate: "bottom" },
+      { name: "Puzzle Date", color: "#f8f", rotate: "bottom" },
+      { name: "Go to Couch", color: "#ccc", rotate: "bottom" },
+
+      // Left column (top to bottom)
+      { name: "💋", color: "#fcc", rotate: "left" },
+      { name: "Talk Time", color: "#cdf", rotate: "left" },
+      { name: "Game Night", color: "#fed", rotate: "left" },
+      { name: "Bubble Bath", color: "#aff", rotate: "left" },
+      { name: "Slow Dance", color: "#fad", rotate: "left" },
+      { name: "Stargazing", color: "#ddf", rotate: "left" },
+      { name: "Free Choice", color: "#cfc", rotate: "left" },
+      { name: "Walk", color: "#fcf", rotate: "left" },
+      { name: "Story Time", color: "#fff", rotate: "left" },
+      { name: "Visit", color: "#eee", rotate: "left" },
     ];
 
     function createBoard() {
@@ -137,6 +132,14 @@
           tile.textContent = data.name;
           tile.style.backgroundColor = data.color;
           if (data.rotate) tile.dataset.rotate = data.rotate;
+
+          // Make tiles editable on click
+          tile.addEventListener('click', () => {
+            const newName = prompt("Enter new tile name:", tile.textContent);
+            if (newName !== null && newName.trim() !== '') {
+              tile.textContent = newName.trim();
+            }
+          });
         } else {
           tile.style.visibility = 'hidden';
         }
