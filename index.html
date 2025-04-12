@@ -2,198 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Monopoly Board</title>
+  <title>Love-opoly</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #fff;
-      color: #000;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-    }
-    h1 {
-      margin-bottom: 20px;
-    }
-    .board-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 20px;
-      overflow: auto;
-    }
-    .board {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(11, 100px);
-      grid-template-rows: repeat(11, 100px);
-      background: #fff;
-      border: 10px solid #000;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      transform-origin: top left;
-    }
-    .cell {
-      background-color: #f8f8f8;
-      color: black;
-      border: 1px solid #000;
-      font-size: 12px;
-      text-align: center;
+      font-family: Arial, sans-serif;
+      background-color: #cce0e0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      padding: 5px;
-      box-sizing: border-box;
-      cursor: pointer;
-      transform-origin: center;
-      overflow: hidden;
+      padding: 20px;
     }
-    .property {
+
+    h1 {
+      background-color: red;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(11, 60px);
+      grid-template-rows: repeat(11, 60px);
+      gap: 2px;
+      margin-top: 20px;
       position: relative;
     }
-    .color-bar {
-      position: absolute;
-      z-index: 1;
-    }
-    .property[data-edge="bottom"] .color-bar {
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 15px;
-    }
-    .property[data-edge="top"] .color-bar {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 15px;
-    }
-    .property[data-edge="left"] .color-bar {
-      top: 0;
-      left: 0;
-      width: 15px;
-      height: 100%;
-    }
-    .property[data-edge="right"] .color-bar {
-      top: 0;
-      right: 0;
-      width: 15px;
-      height: 100%;
-    }
-    .property span {
-      font-size: 12px;
-      font-weight: bold;
-      transform: rotate(var(--text-rotation, 0deg));
-      text-align: center;
-      z-index: 2;
-      white-space: nowrap;
-    }
-    .center-tile {
-      grid-column: 2 / span 9;
-      grid-row: 2 / span 9;
-      background-color: #3e8e41;
-      border: 2px dashed #fff;
+
+    .tile {
+      background-color: #fff;
+      border: 2px solid #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      font-weight: bold;
-      color: #fff;
-      padding: 20px;
-      text-shadow: 2px 2px #000;
+      font-size: 10px;
+      text-align: center;
+      cursor: pointer;
+      padding: 5px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
     }
-    .special-tile {
-      background-color: #ffc107;
-      font-weight: bold;
-      font-size: 9px;
-      justify-content: center;
-      align-items: center;
+
+    .tile:hover {
+      background-color: #fdd;
     }
-    .chance {
-      background-color: #ff5722;
-      color: white;
-      font-weight: bold;
+
+    .tile[data-rotate="left"] {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    .tile[data-rotate="right"] {
+      writing-mode: vertical-rl;
+    }
+
+    .tile[data-rotate="top"] {
+      transform: rotate(180deg);
     }
   </style>
 </head>
 <body>
-  <h1>Custom Monopoly Board Generator</h1>
-  <div class="board-container">
-    <div class="board" id="board"></div>
-  </div>
+  <h1>Love-opoly</h1>
+  <div class="board" id="board"></div>
+
   <script>
     const board = document.getElementById('board');
 
-    const specialTiles = {
-      0: 'GO',
-      10: 'JAIL',
-      110: 'FREE PARKING',
-      120: 'GO TO JAIL'
-    };
+    const tiles = [
+      { name: "Start", color: "#fff", rotate: "bottom" },
+      { name: "Free Kiss", color: "#f28", rotate: "bottom" },
+      { name: "Movie Night", color: "#88f", rotate: "bottom" },
+      { name: "Hug Break", color: "#8f8", rotate: "bottom" },
+      { name: "Compliment", color: "#ff8", rotate: "bottom" },
+      { name: "Snack Time", color: "#faa", rotate: "bottom" },
+      { name: "Dance", color: "#fc0", rotate: "bottom" },
+      { name: "Netflix", color: "#aaf", rotate: "bottom" },
+      { name: "Massage", color: "#afa", rotate: "bottom" },
+      { name: "Puzzle Date", color: "#f8f", rotate: "bottom" },
+      { name: "Go to Couch", color: "#ccc", rotate: "bottom" },
 
-    const positions = [];
-    const edges = [];
+      { name: "💋", color: "#fcc", rotate: "left" },
+      { name: "Talk Time", color: "#cdf", rotate: "left" },
+      { name: "Game Night", color: "#fed", rotate: "left" },
+      { name: "Bubble Bath", color: "#aff", rotate: "left" },
+      { name: "Slow Dance", color: "#fad", rotate: "left" },
+      { name: "Stargazing", color: "#ddf", rotate: "left" },
+      { name: "Free Choice", color: "#cfc", rotate: "left" },
+      { name: "Walk", color: "#fcf", rotate: "left" },
+      { name: "Story Time", color: "#fff", rotate: "left" },
+      { name: "Visit", color: "#eee", rotate: "left" },
 
-    for (let i = 9; i >= 1; i--) { positions.push(110 + i); edges.push('bottom'); }
-    for (let i = 9; i >= 1; i--) { positions.push(i * 11); edges.push('left'); }
-    for (let i = 1; i <= 9; i++) { positions.push(i); edges.push('top'); }
-    for (let i = 1; i <= 9; i++) { positions.push(i * 11 + 10); edges.push('right'); }
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
+      { name: "Blank", color: "#cce0e0" },
 
-    const rotations = {
-      top: '0deg',
-      bottom: '180deg',
-      left: '-90deg',
-      right: '90deg'
-    };
+      { name: "HOME", color: "#fff", rotate: "top" },
+      { name: "Read Together", color: "#f28", rotate: "top" },
+      { name: "Cook Dinner", color: "#88f", rotate: "top" },
+      { name: "Picnic", color: "#8f8", rotate: "top" },
+      { name: "Mini Trip", color: "#ff8", rotate: "top" },
+      { name: "Board Games", color: "#faa", rotate: "top" },
+      { name: "Tea Time", color: "#fc0", rotate: "top" },
+      { name: "Cuddle", color: "#aaf", rotate: "top" },
+      { name: "Love Letter", color: "#afa", rotate: "top" },
+      { name: "Photo Shoot", color: "#f8f", rotate: "top" },
+      { name: "Jail", color: "#ccc", rotate: "top" },
 
-    const properties = positions.map((pos, i) => ({
-      name: `Property ${i + 1}`,
-      color: `hsl(${(i * 37) % 360}, 70%, 50%)`,
-      edge: edges[i],
-      rotation: rotations[edges[i]]
-    }));
+      { name: "Kiss Token", color: "#fcc", rotate: "right" },
+      { name: "Pick a Date", color: "#cdf", rotate: "right" },
+      { name: "Secret Gift", color: "#fed", rotate: "right" },
+      { name: "Ask a Question", color: "#aff", rotate: "right" },
+      { name: "Tickle Fight", color: "#fad", rotate: "right" },
+      { name: "Dream Share", color: "#ddf", rotate: "right" },
+      { name: "Write a Poem", color: "#cfc", rotate: "right" },
+      { name: "Favorite Song", color: "#fcf", rotate: "right" },
+      { name: "Wish Jar", color: "#fff", rotate: "right" },
+      { name: "Couch Time", color: "#eee", rotate: "right" },
+    ];
 
-    for (let row = 0; row < 11; row++) {
-      for (let col = 0; col < 11; col++) {
-        const index = row * 11 + col;
-        const cell = document.createElement('div');
+    function createBoard() {
+      for (let i = 0; i < 121; i++) {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
 
-        if (row > 0 && row < 10 && col > 0 && col < 10) {
-          if (row === 5 && col === 5) {
-            cell.className = 'cell center-tile';
-            cell.textContent = 'MONOPOLY';
-          }
-          board.appendChild(cell);
-          continue;
-        }
-
-        cell.className = 'cell';
-
-        if (specialTiles[index]) {
-          cell.classList.add('special-tile');
-          cell.textContent = specialTiles[index];
+        const edge = getEdgeIndex(i);
+        if (edge !== null) {
+          const data = tiles[edge];
+          tile.textContent = data.name;
+          tile.style.backgroundColor = data.color;
+          if (data.rotate) tile.dataset.rotate = data.rotate;
         } else {
-          const tileIndex = positions.indexOf(index);
-          if (tileIndex !== -1) {
-            const prop = properties[tileIndex];
-            cell.classList.add('property');
-            cell.dataset.edge = prop.edge;
-            cell.style.setProperty('--text-rotation', prop.rotation);
-
-            const bar = document.createElement('div');
-            bar.className = 'color-bar';
-            bar.style.backgroundColor = prop.color;
-
-            const label = document.createElement('span');
-            label.textContent = prop.name;
-
-            cell.appendChild(bar);
-            cell.appendChild(label);
-          }
+          tile.style.visibility = 'hidden';
         }
-        board.appendChild(cell);
+
+        board.appendChild(tile);
       }
     }
+
+    function getEdgeIndex(i) {
+      const row = Math.floor(i / 11);
+      const col = i % 11;
+
+      if (row === 0) return 30 + col;
+      if (row === 10) return 0 + (10 - col);
+      if (col === 0) return 20 + (10 - row);
+      if (col === 10) return 10 + row - 1;
+
+      return null;
+    }
+
+    createBoard();
   </script>
 </body>
 </html>
