@@ -21,20 +21,21 @@
       border-radius: 15px;
       text-align: center;
       margin-bottom: 10px;
-      cursor: pointer;
     }
-    h1 { font-size: 2.5rem; }
-    h2 { font-size: 1.5rem; background: #d32f2f; }
+    h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.2rem; background: #d32f2f; }
 
     .sidebar {
       width: 250px;
       margin-right: 20px;
     }
-    .sidebar button {
+    .sidebar input, .sidebar select, .sidebar button {
       width: 100%;
       margin-bottom: 10px;
-      padding: 10px;
+      padding: 8px;
       font-size: 1rem;
+    }
+    button {
       background: #4CAF50;
       color: white;
       border: none;
@@ -56,23 +57,20 @@
       height: 100%;
       grid-template-columns: repeat(22, 1fr);
       grid-template-rows: repeat(22, 1fr);
-      position: relative;
-      z-index: 2;
     }
 
     .tile {
       border: 2px solid black;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
+      text-align: center;
       font-size: 0.6vw;
       padding: 4px;
-      text-align: center;
-      overflow-wrap: break-word;
-      background: white;
+      word-break: break-word;
       cursor: pointer;
       z-index: 3;
+      flex-direction: column;
     }
 
     .tile-regular {
@@ -85,83 +83,103 @@
       grid-row: span 2;
     }
 
-    .dark-purple { background-color: #5a2a82; color: white; }
-    .light-blue { background-color: #add8e6; }
-    .pink { background-color: #ff69b4; }
-    .orange { background-color: #ffa500; }
-    .red { background-color: #ff0000; color: white; }
-    .yellow { background-color: #ffff66; }
-    .green { background-color: #008000; color: white; }
-    .dark-blue { background-color: #00008b; color: white; }
-    .railroad { background-color: #ccc; }
-    .utility { background-color: #eee; font-style: italic; }
-    .special { background-color: #fff; }
-
     @media print {
-      .sidebar, #downloadBtn, #finishBtn, #deleteBtn, #addTileBtn { display: none; }
+      .sidebar { display: none; }
       body { zoom: 1.2; background: white; }
-      .grid-wrapper { width: 100%; height: auto; aspect-ratio: 1; }
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
-    <h1>Love-opoly Board Creator</h1>
-    <h2>Tile Options</h2>
+    <h1>Love-opoly</h1>
+    <h2>Add Tile</h2>
+    <select id="tileType">
+      <option value="regular">Regular (2x1)</option>
+      <option value="corner">Corner (2x2)</option>
+    </select>
+    <input type="number" id="col" placeholder="Column start (1-21)" min="1" max="21" />
+    <input type="number" id="row" placeholder="Row start (1-21)" min="1" max="21" />
+    <input type="text" id="tileText" placeholder="Tile text" />
+    <select id="tileColor">
+      <option value="">White</option>
+      <option value="#ff0000">Red</option>
+      <option value="#ff69b4">Pink</option>
+      <option value="#add8e6">Light Blue</option>
+      <option value="#ffa500">Orange</option>
+      <option value="#ffff66">Yellow</option>
+      <option value="#008000">Green</option>
+      <option value="#00008b">Dark Blue</option>
+      <option value="#5a2a82">Purple</option>
+      <option value="#eee">Utility</option>
+    </select>
     <button id="addTileBtn">Add Tile</button>
-    <button id="deleteBtn">Delete Tile</button>
-    <button id="finishBtn">Finish Board</button>
+    <button id="deleteTileBtn">Delete Selected</button>
     <button id="downloadBtn">Download Board</button>
   </div>
 
   <div class="grid-wrapper">
-    <div class="board"></div>
+    <div class="board" id="board"></div>
   </div>
 
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const addTileBtn = document.getElementById("addTileBtn");
-      const deleteBtn = document.getElementById("deleteBtn");
-      const finishBtn = document.getElementById("finishBtn");
-      const downloadBtn = document.getElementById("downloadBtn");
-      const board = document.querySelector(".board");
-      let selectedTile = null;
+    const board = document.getElementById("board");
+    let selectedTile = null;
 
-      addTileBtn.addEventListener("click", () => {
-        const isCorner = confirm("Is this a corner tile?");
-        const tile = document.createElement("div");
-        tile.classList.add("tile");
-        tile.classList.add(isCorner ? "tile-corner" : "tile-regular");
-        tile.textContent = isCorner ? "Corner Tile" : "New Tile";
+    function createTileElement({ type, col, row, text, color }) {
+      const tile = document.createElement("div");
+      tile.classList.add("tile", type === "corner" ? "tile-corner" : "tile-regular");
+      tile.style.gridColumnStart = col;
+      tile.style.gridRowStart = row;
+      tile.textContent = text;
+      tile.style.backgroundColor = color;
 
-        // Prompt user for position
-        const col = prompt("Enter column start (1–21):");
-        const row = prompt("Enter row start (1–21):");
-        tile.style.gridColumnStart = col;
-        tile.style.gridRowStart = row;
+      tile.addEventListener("click", () => {
+        selectedTile = tile;
+        const newText = prompt("Edit tile text:", tile.textContent);
+        if (newText !== null) tile.textContent = newText;
 
-        board.appendChild(tile);
-
-        tile.addEventListener("click", () => {
-          selectedTile = tile;
-        });
+        const newColor = prompt("Edit tile color (hex or color name):", tile.style.backgroundColor);
+        if (newColor !== null) tile.style.backgroundColor = newColor;
       });
 
-      deleteBtn.addEventListener("click", () => {
-        if (selectedTile) {
-          selectedTile.remove();
-          selectedTile = null;
-        } else {
-          alert("No tile selected.");
-        }
-      });
+      return tile;
+    }
 
-      finishBtn.addEventListener("click", () => {
-        alert("Board finished!");
-      });
+    document.getElementById("addTileBtn").addEventListener("click", () => {
+      const type = document.getElementById("tileType").value;
+      const col = parseInt(document.getElementById("col").value);
+      const row = parseInt(document.getElementById("row").value);
+      const text = document.getElementById("tileText").value;
+      const color = document.getElementById("tileColor").value || "white";
 
-      downloadBtn.addEventListener("click", () => {
-        alert("Downloading board (feature coming soon)!");
+      if (!col || !row || !text) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      const tile = createTileElement({ type, col, row, text, color });
+      board.appendChild(tile);
+
+      // Clear inputs
+      document.getElementById("tileText").value = "";
+    });
+
+    document.getElementById("deleteTileBtn").addEventListener("click", () => {
+      if (selectedTile) {
+        selectedTile.remove();
+        selectedTile = null;
+      } else {
+        alert("Click on a tile first to select it.");
+      }
+    });
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      html2canvas(document.querySelector(".grid-wrapper")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "love-opoly-board.png";
+        link.href = canvas.toDataURL();
+        link.click();
       });
     });
   </script>
