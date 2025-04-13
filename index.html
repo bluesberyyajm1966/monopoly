@@ -30,14 +30,11 @@
       width: 250px;
       margin-right: 20px;
     }
-    .sidebar input, .sidebar select, .sidebar button {
+    .sidebar button {
       width: 100%;
       margin-bottom: 10px;
-      padding: 8px;
-      font-size: 1rem;
-    }
-    #downloadBtn, #finishBtn, #deleteBtn, #addTileBtn {
       padding: 10px;
+      font-size: 1rem;
       background: #4CAF50;
       color: white;
       border: none;
@@ -52,37 +49,17 @@
       background: white;
       border: 8px solid black;
     }
-    .title-wrapper {
-      width: 100%;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .grid-overlay {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background-image:
-        linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
-      background-size: calc(100% / 11) calc(100% / 11);
-      pointer-events: none;
-      z-index: 1;
-      clip-path: polygon(
-        0% 0%, 100% 0%, 100% 100%, 0% 100%,
-        0% 18.2%, 81.8% 18.2%, 81.8% 81.8%, 18.2% 81.8%, 18.2% 18.2%, 0% 18.2%
-      );
-    }
+
     .board {
       display: grid;
       width: 100%;
       height: 100%;
-      grid-template-columns: repeat(11, 1fr);
-      grid-template-rows: repeat(11, 1fr);
-      position: absolute;
-      top: 0;
-      left: 0;
+      grid-template-columns: repeat(22, 1fr);
+      grid-template-rows: repeat(22, 1fr);
+      position: relative;
       z-index: 2;
     }
+
     .tile {
       border: 2px solid black;
       display: flex;
@@ -93,15 +70,19 @@
       padding: 4px;
       text-align: center;
       overflow-wrap: break-word;
-      cursor: move;
       background: white;
-      transform-origin: center;
-      position: absolute;
+      cursor: pointer;
       z-index: 3;
     }
-    .tile span {
-      transform-origin: center;
-      display: block;
+
+    .tile-regular {
+      grid-column: span 2;
+      grid-row: span 1;
+    }
+
+    .tile-corner {
+      grid-column: span 2;
+      grid-row: span 2;
     }
 
     .dark-purple { background-color: #5a2a82; color: white; }
@@ -127,19 +108,13 @@
   <div class="sidebar">
     <h1>Love-opoly Board Creator</h1>
     <h2>Tile Options</h2>
-    <select id="tileSize">
-      <option value="1x1">1x1</option>
-      <option value="2x1">2x1</option>
-      <option value="1x2">1x2</option>
-      <option value="2x2">2x2</option>
-    </select>
     <button id="addTileBtn">Add Tile</button>
     <button id="deleteBtn">Delete Tile</button>
     <button id="finishBtn">Finish Board</button>
     <button id="downloadBtn">Download Board</button>
   </div>
+
   <div class="grid-wrapper">
-    <div class="grid-overlay"></div>
     <div class="board"></div>
   </div>
 
@@ -149,54 +124,44 @@
       const deleteBtn = document.getElementById("deleteBtn");
       const finishBtn = document.getElementById("finishBtn");
       const downloadBtn = document.getElementById("downloadBtn");
-      const tileSizeSelect = document.getElementById("tileSize");
-
       const board = document.querySelector(".board");
       let selectedTile = null;
 
-      // Function to add a tile
       addTileBtn.addEventListener("click", () => {
-        const size = tileSizeSelect.value;
-        const newTile = document.createElement("div");
-        newTile.classList.add("tile");
-        newTile.textContent = `${size} Tile`;
-        newTile.setAttribute("draggable", true);
+        const isCorner = confirm("Is this a corner tile?");
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        tile.classList.add(isCorner ? "tile-corner" : "tile-regular");
+        tile.textContent = isCorner ? "Corner Tile" : "New Tile";
 
-        // Set size of the tile
-        const [rows, cols] = size.split('x').map(num => parseInt(num));
-        newTile.style.width = `${cols * 100}px`; // Each tile grid square is 100px
-        newTile.style.height = `${rows * 100}px`; // Each tile grid square is 100px
+        // Prompt user for position
+        const col = prompt("Enter column start (1–21):");
+        const row = prompt("Enter row start (1–21):");
+        tile.style.gridColumnStart = col;
+        tile.style.gridRowStart = row;
 
-        board.appendChild(newTile);
+        board.appendChild(tile);
 
-        newTile.addEventListener("dragstart", (e) => {
-          selectedTile = newTile;
-        });
-
-        newTile.addEventListener("dragend", (e) => {
-          if (selectedTile) {
-            selectedTile.style.left = `${e.pageX - board.offsetLeft - selectedTile.offsetWidth / 2}px`;
-            selectedTile.style.top = `${e.pageY - board.offsetTop - selectedTile.offsetHeight / 2}px`;
-          }
+        tile.addEventListener("click", () => {
+          selectedTile = tile;
         });
       });
 
-      // Function to delete the selected tile
       deleteBtn.addEventListener("click", () => {
         if (selectedTile) {
           selectedTile.remove();
           selectedTile = null;
+        } else {
+          alert("No tile selected.");
         }
       });
 
-      // Function to finish the board (can add more features here)
       finishBtn.addEventListener("click", () => {
         alert("Board finished!");
       });
 
-      // Download button logic (for now just an alert)
       downloadBtn.addEventListener("click", () => {
-        alert("Downloading board...");
+        alert("Downloading board (feature coming soon)!");
       });
     });
   </script>
