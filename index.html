@@ -1,68 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Love-opoly</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 20px;
       background: #f5f5f5;
       font-family: sans-serif;
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-direction: row;
+      align-items: flex-start;
     }
-
-    h1 {
+    h1, h2 {
       color: white;
       background: red;
       padding: 10px 30px;
       border-radius: 15px;
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+      text-align: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    h1 { font-size: 2.5rem; }
+    h2 { font-size: 1.5rem; background: #d32f2f; }
+
+    .sidebar {
+      width: 250px;
+      margin-right: 20px;
+    }
+    .sidebar input, .sidebar select, .sidebar button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    #downloadBtn, #finishBtn, #deleteBtn, #addTileBtn {
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
-    .board {
-      display: grid;
+    .grid-wrapper {
+      position: relative;
       width: 90vmin;
       height: 90vmin;
+      background: white;
+      border: 8px solid black;
+    }
+    .title-wrapper {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .grid-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+      background-size: calc(100% / 11) calc(100% / 11);
+      pointer-events: none;
+      z-index: 1;
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 100%, 0% 100%,
+        0% 18.2%, 81.8% 18.2%, 81.8% 81.8%, 18.2% 81.8%, 18.2% 18.2%, 0% 18.2%
+      );
+    }
+    .board {
+      display: grid;
+      width: 100%;
+      height: 100%;
       grid-template-columns: repeat(11, 1fr);
       grid-template-rows: repeat(11, 1fr);
-      border: 8px solid black;
-      background: white;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
     }
-
     .tile {
-      border: 1px solid black;
+      border: 2px solid black;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-size: 0.6vw;
       padding: 4px;
       text-align: center;
       overflow-wrap: break-word;
-      cursor: pointer;
+      cursor: move;
       background: white;
-      writing-mode: horizontal-tb;
       transform-origin: center;
+      position: absolute;
+      z-index: 3;
+    }
+    .tile span {
+      transform-origin: center;
+      display: block;
     }
 
-    .corner {
-      font-size: 0.9vw;
-      writing-mode: horizontal-tb;
-      font-weight: bold;
-    }
-
-    .tile[data-edge="top"] { transform: rotate(180deg); }
-    .tile[data-edge="right"] { transform: rotate(-90deg); }
-    .tile[data-edge="left"] { transform: rotate(90deg); }
-
-    /* Colors */
     .dark-purple { background-color: #5a2a82; color: white; }
     .light-blue { background-color: #add8e6; }
     .pink { background-color: #ff69b4; }
@@ -76,109 +117,87 @@
     .special { background-color: #fff; }
 
     @media print {
-      body {
-        zoom: 1.2;
-        background: white;
-      }
-      .board {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 1;
-      }
+      .sidebar, #downloadBtn, #finishBtn, #deleteBtn, #addTileBtn { display: none; }
+      body { zoom: 1.2; background: white; }
+      .grid-wrapper { width: 100%; height: auto; aspect-ratio: 1; }
     }
   </style>
 </head>
 <body>
-  <h1>Love-opoly</h1>
-  <div class="board" id="board"></div>
+  <div class="sidebar">
+    <h1>Love-opoly Board Creator</h1>
+    <h2>Tile Options</h2>
+    <select id="tileSize">
+      <option value="1x1">1x1</option>
+      <option value="2x1">2x1</option>
+      <option value="1x2">1x2</option>
+      <option value="2x2">2x2</option>
+    </select>
+    <button id="addTileBtn">Add Tile</button>
+    <button id="deleteBtn">Delete Tile</button>
+    <button id="finishBtn">Finish Board</button>
+    <button id="downloadBtn">Download Board</button>
+  </div>
+  <div class="grid-wrapper">
+    <div class="grid-overlay"></div>
+    <div class="board"></div>
+  </div>
 
   <script>
-    const board = document.getElementById("board");
+    document.addEventListener("DOMContentLoaded", () => {
+      const addTileBtn = document.getElementById("addTileBtn");
+      const deleteBtn = document.getElementById("deleteBtn");
+      const finishBtn = document.getElementById("finishBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const tileSizeSelect = document.getElementById("tileSize");
 
-    const positions = new Array(121).fill(null);
+      const board = document.querySelector(".board");
+      let selectedTile = null;
 
-    // Helper to place tiles by row/col
-    function placeTile(row, col, name, cssClass, edge = "") {
-      const tile = document.createElement("div");
-      tile.className = `tile ${cssClass}`;
-      if ((row === 0 || row === 10) && (col === 0 || col === 10)) tile.classList.add("corner");
-      tile.dataset.edge = edge;
-      tile.textContent = name;
-      tile.addEventListener("click", () => {
-        const newText = prompt("Rename this tile:", tile.textContent);
-        if (newText && newText.trim()) {
-          tile.textContent = newText.trim();
+      // Function to add a tile
+      addTileBtn.addEventListener("click", () => {
+        const size = tileSizeSelect.value;
+        const newTile = document.createElement("div");
+        newTile.classList.add("tile");
+        newTile.textContent = `${size} Tile`;
+        newTile.setAttribute("draggable", true);
+
+        // Set size of the tile
+        const [rows, cols] = size.split('x').map(num => parseInt(num));
+        newTile.style.width = `${cols * 100}px`; // Each tile grid square is 100px
+        newTile.style.height = `${rows * 100}px`; // Each tile grid square is 100px
+
+        board.appendChild(newTile);
+
+        newTile.addEventListener("dragstart", (e) => {
+          selectedTile = newTile;
+        });
+
+        newTile.addEventListener("dragend", (e) => {
+          if (selectedTile) {
+            selectedTile.style.left = `${e.pageX - board.offsetLeft - selectedTile.offsetWidth / 2}px`;
+            selectedTile.style.top = `${e.pageY - board.offsetTop - selectedTile.offsetHeight / 2}px`;
+          }
+        });
+      });
+
+      // Function to delete the selected tile
+      deleteBtn.addEventListener("click", () => {
+        if (selectedTile) {
+          selectedTile.remove();
+          selectedTile = null;
         }
       });
-      positions[row * 11 + col] = tile;
-    }
 
-    // Place corners
-    placeTile(0, 0, "Free Kisses", "special", "top");
-    placeTile(0, 10, "Go To Couch", "special", "top");
-    placeTile(10, 10, "Forever Home", "special", "bottom");
-    placeTile(10, 0, "Jail", "special", "bottom");
+      // Function to finish the board (can add more features here)
+      finishBtn.addEventListener("click", () => {
+        alert("Board finished!");
+      });
 
-    // Top edge (left to right)
-    const topTiles = [
-      ["Sunset Views", "red"],
-      ["Love Letters", "special"],
-      ["Poetry Night", "red"],
-      ["Story Time", "red"],
-      ["Heart Line", "railroad"],
-      ["Bubble Baths", "yellow"],
-      ["Shared Journal", "yellow"],
-      ["Spa Date", "utility"],
-      ["Brunch Dates", "yellow"]
-    ];
-    topTiles.forEach((t, i) => placeTile(0, i + 1, t[0], t[1], "top"));
-
-    // Right edge (top to bottom)
-    const rightTiles = [
-      ["Morning Cuddles", "pink"],
-      ["Utility Bills", "utility"],
-      ["Couple Playlist", "pink"],
-      ["Couple Selfies", "pink"],
-      ["Love Line", "railroad"],
-      ["Couple’s Retreat", "orange"],
-      ["Cozy Fireplace", "special"],
-      ["Hot Cocoa Date", "orange"],
-      ["Warm Blankets", "orange"]
-    ];
-    rightTiles.forEach((t, i) => placeTile(i + 1, 10, t[0], t[1], "right"));
-
-    // Bottom edge (right to left)
-    const bottomTiles = [
-      ["GO", "special"],
-      ["Love Nest", "dark-purple"],
-      ["Pillow Talk", "special"],
-      ["Snuggle Stop", "dark-purple"],
-      ["Train Ride", "railroad"],
-      ["Date Night", "light-blue"],
-      ["Couple Goals", "special"],
-      ["Inside Jokes", "light-blue"],
-      ["Matching Outfits", "light-blue"]
-    ];
-    bottomTiles.forEach((t, i) => placeTile(10, 9 - i, t[0], t[1], "bottom"));
-
-    // Left edge (bottom to top)
-    const leftTiles = [
-      ["Star Gazing", "green"],
-      ["Late Night Talks", "green"],
-      ["Movie Marathon", "special"],
-      ["Rainy Days", "green"],
-      ["Kiss Line", "railroad"],
-      ["Anniversary", "special"],
-      ["Matching Mugs", "dark-blue"],
-      ["Love Forever", "special"],
-      ["Blank", "special"]
-    ];
-    leftTiles.forEach((t, i) => placeTile(9 - i, 0, t[0], t[1], "left"));
-
-    // Fill the board
-    positions.forEach((tile, i) => {
-      const cell = tile || document.createElement("div");
-      board.appendChild(cell);
+      // Download button logic (for now just an alert)
+      downloadBtn.addEventListener("click", () => {
+        alert("Downloading board...");
+      });
     });
   </script>
 </body>
