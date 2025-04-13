@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Love-opoly</title>
+  <title>Love-opoly Builder</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -11,82 +11,63 @@
       background: #f5f5f5;
       font-family: sans-serif;
       display: flex;
-      flex-direction: row;
-      align-items: flex-start;
+      gap: 20px;
     }
-    h1, h2 {
-      color: white;
-      background: red;
-      padding: 10px 30px;
-      border-radius: 15px;
-      text-align: center;
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-    h1 { font-size: 2.5rem; }
-    h2 { font-size: 1.5rem; background: #d32f2f; }
-
     .sidebar {
       width: 250px;
-      margin-right: 20px;
+    }
+    h1, h2 {
+      background: crimson;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
     }
     .sidebar input, .sidebar select, .sidebar button {
       width: 100%;
+      padding: 10px;
       margin-bottom: 10px;
-      padding: 8px;
       font-size: 1rem;
     }
-    #downloadBtn, #finishBtn, #deleteBtn, #addTileBtn {
-      padding: 10px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
 
-    .grid-wrapper {
-      position: relative;
+    .board-container {
       width: 90vmin;
       height: 90vmin;
+      border: 10px solid black;
+      position: relative;
       background: white;
-      border: 8px solid black;
-    }
-
-    .board {
-      position: absolute;
-      top: 0;
-      left: 0;
       display: grid;
-      width: 100%;
-      height: 100%;
       grid-template-columns: repeat(11, 1fr);
       grid-template-rows: repeat(11, 1fr);
     }
 
     .tile {
+      position: absolute;
       border: 2px solid black;
+      padding: 5px;
+      font-size: 0.7vw;
+      background: white;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 0.7vw;
-      text-align: center;
-      background: white;
-      z-index: 3;
-      overflow-wrap: break-word;
+      cursor: grab;
+      user-select: none;
     }
 
-    .tile.corner {
-      grid-column: span 2;
-      grid-row: span 2;
+    .tile.dragging {
+      opacity: 0.5;
     }
 
-    .tile.horiz {
-      grid-column: span 2;
-    }
-
-    .tile.vert {
-      grid-row: span 2;
+    .tile button {
+      font-size: 0.6rem;
+      margin-top: 2px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 5px;
+      cursor: pointer;
     }
 
     .dark-purple { background-color: #5a2a82; color: white; }
@@ -97,21 +78,12 @@
     .yellow { background-color: #ffff66; }
     .green { background-color: #008000; color: white; }
     .dark-blue { background-color: #00008b; color: white; }
-    .railroad { background-color: #ccc; }
-    .utility { background-color: #eee; font-style: italic; }
-    .special { background-color: #fff; }
-
-    @media print {
-      .sidebar, #downloadBtn, #finishBtn, #deleteBtn, #addTileBtn { display: none; }
-      body { zoom: 1.2; background: white; }
-      .grid-wrapper { width: 100%; height: auto; aspect-ratio: 1; }
-    }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h1>Love-opoly</h1>
-    <h2>Add Tile</h2>
+    <h2>Create Tile</h2>
     <input type="text" id="tileName" placeholder="Tile name" />
     <select id="tileColor">
       <option value="">Special</option>
@@ -123,62 +95,74 @@
       <option value="yellow">Yellow</option>
       <option value="green">Green</option>
       <option value="dark-blue">Dark Blue</option>
-      <option value="railroad">Railroad</option>
-      <option value="utility">Utility</option>
     </select>
-    <select id="tileType">
-      <option value="corner">Corner (2x2)</option>
-      <option value="horiz">Horizontal (2x1)</option>
-      <option value="vert">Vertical (1x2)</option>
-    </select>
-    <button id="addTileBtn">Add Tile</button>
-    <button id="deleteBtn">Clear Tiles</button>
-    <button id="downloadBtn">Download</button>
-    <button id="finishBtn">Finish Layout</button>
+    <button onclick="createTile()">Add Tile</button>
   </div>
 
-  <div class="grid-wrapper">
-    <div class="board" id="board"></div>
-  </div>
+  <div class="board-container" id="board"></div>
 
   <script>
     const board = document.getElementById("board");
-    const tileName = document.getElementById("tileName");
-    const tileColor = document.getElementById("tileColor");
-    const tileType = document.getElementById("tileType");
-    const addTileBtn = document.getElementById("addTileBtn");
-    const deleteBtn = document.getElementById("deleteBtn");
-    const finishBtn = document.getElementById("finishBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
+    let draggedTile = null;
 
-    let tileCount = 0;
+    function createTile() {
+      const name = document.getElementById("tileName").value.trim();
+      const color = document.getElementById("tileColor").value;
 
-    function createTile(name, color, type) {
+      if (!name) return alert("Enter a tile name");
+
       const tile = document.createElement("div");
-      tile.classList.add("tile", type);
-      if (color) tile.classList.add(color);
-      tile.textContent = name || "Tile";
-      tile.dataset.id = ++tileCount;
+      tile.className = `tile ${color}`;
+      tile.draggable = true;
+      tile.innerHTML = `<strong>${name}</strong>
+        <button onclick="editTile(event)">✏️</button>
+        <button onclick="deleteTile(event)">🗑️</button>`;
+      tile.style.top = "0px";
+      tile.style.left = "0px";
+      tile.style.width = "8vmin";
+      tile.style.height = "8vmin";
+
+      tile.addEventListener("dragstart", (e) => {
+        draggedTile = tile;
+        setTimeout(() => tile.classList.add("dragging"), 0);
+      });
+
+      tile.addEventListener("dragend", () => {
+        draggedTile = null;
+        tile.classList.remove("dragging");
+      });
+
       board.appendChild(tile);
     }
 
-    addTileBtn.onclick = () => {
-      createTile(tileName.value, tileColor.value, tileType.value);
-      tileName.value = "";
-    };
+    function editTile(event) {
+      event.stopPropagation();
+      const tile = event.target.closest(".tile");
+      const currentName = tile.querySelector("strong").innerText;
+      const newName = prompt("Edit tile name:", currentName);
+      if (newName !== null) tile.querySelector("strong").innerText = newName;
+    }
 
-    deleteBtn.onclick = () => {
-      board.innerHTML = "";
-      tileCount = 0;
-    };
+    function deleteTile(event) {
+      event.stopPropagation();
+      const tile = event.target.closest(".tile");
+      tile.remove();
+    }
 
-    finishBtn.onclick = () => {
-      alert("Done placing tiles!");
-    };
+    board.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
 
-    downloadBtn.onclick = () => {
-      window.print();
-    };
+    board.addEventListener("drop", (e) => {
+      if (!draggedTile) return;
+
+      const rect = board.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      draggedTile.style.left = `${x - draggedTile.offsetWidth / 2}px`;
+      draggedTile.style.top = `${y - draggedTile.offsetHeight / 2}px`;
+    });
   </script>
 </body>
 </html>
